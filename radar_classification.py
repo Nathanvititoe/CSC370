@@ -1,76 +1,79 @@
-'''
-Code a new ML application using Python 3.x.
-This program should be able to do simple classification using the ML Scikit Learn library and tell if an incoming plane is a fighter or a bomber.
-Use a decision Tree as a classifier. 
-Train your classifier based on the data you collect.
-An explanation of what this program is should be displayed for the user.
-The UX target user is a first-time user.
-Directions for the user on the UI.
-Over comment your code with your own comments in your own words showing you understand the intent and function of almost every line of code. Make sure to use your own comments.
-'''
-
-# radar_classifier.py
-
 # IMPORTS
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
+import matplotlib.pyplot as plt
+from sklearn.tree import plot_tree
 
 # This is just for a clean interface
 def intro():
     print("=== WWII Aircraft Radar Classifier ===")
-    print("This tool uses a Decision Tree to classify if an incoming aircraft is a Fighter or a Bomber.")
-    print("It’s based on radar data and some aircraft characteristics.\n")
-    print("Instructions: This is a demo. In a real app, radar would feed in real-time data.\n")
+    print("This tool is meant to determine whether a incoming aircraft are fighter or bombers in a WWII Radar Simulator.")
+    print("The tool is based on aircraft characteristics from open source data.\n")
 
-# FEATURES EXAMPLE:
-# Let’s assume the features are simplified as follows:
-# Speed (km/h), Wingspan (m), Weight (kg), Engine Count
+# FEATURES: 
+# Speed_km/h, Wingspan_m, Weight_kg, Engine Count
 
 # LABELS:
 # 0 = Fighter
 # 1 = Bomber
 
-# Example synthetic dataset (because Wikipedia doesn’t give structured data directly)
-# These values are based loosely on real WWII aircraft characteristics
+# Test dataset based on wikipedia values [speed, wingspan, weight, engine count]
 data = [
-    [580, 11, 3200, 1],  # Fighter: P-51 Mustang
+    [580, 11, 3200, 1],  # Fighter: P-51
     [560, 10, 2900, 1],  # Fighter: Spitfire
-    [450, 22, 16000, 4],  # Bomber: B-17 Flying Fortress
+    [450, 22, 16000, 4],  # Bomber: B-17 
     [430, 28, 18000, 4],  # Bomber: Lancaster
     [600, 12, 3300, 1],  # Fighter: Fw 190
-    [400, 31, 17000, 4],  # Bomber: Heinkel He 177
+    [400, 31, 17000, 4],  # Bomber: He 177
 ]
 
 labels = [0, 0, 1, 1, 0, 1]  # Fighter = 0, Bomber = 1
 
-# Split the data into training and testing sets
+# get test and training sets
+# 30% of data used for testing/ 70% used for training
 features_train, features_test, labels_train, labels_test = train_test_split(
     data, labels, test_size=0.3, random_state=42
 )
 
-# Create a Decision Tree classifier object
+
+# create decision tree obj
 clf = DecisionTreeClassifier()
 
-# Train the classifier on the training data
+# train the classifier on the training set
 clf = clf.fit(features_train, labels_train)
 
-# Make predictions using the test data
+# make predictions using the test data
 predictions = clf.predict(features_test)
 
-# Evaluate accuracy
+# check the accuracy
 accuracy = metrics.accuracy_score(labels_test, predictions)
 
+# fuinciton to create graph of decision tree for visualization
+def visualize_tree():
+    plt.figure(figsize=(12, 8))  # size of graph
+    plot_tree(
+        clf,  # the classifier you trained earlier
+        feature_names=["Speed", "Wingspan", "Weight", "Engines"],  # column labels
+        class_names=["Fighter", "Bomber"],  # what 0 and 1 mean (labels)
+        filled=True,  # color nodes
+        rounded=True,
+    )
+    plt.title("Decision Tree for WWII Aircraft Classification")
+    plt.show()
+
+# main function
 def main():
     intro()
     print("=== Model Training Complete ===")
-    print(f"Test Accuracy: {accuracy * 100:.2f}%\n")
+    print(f"Test Accuracy: {accuracy * 100:.2f}%\n") # display the accuracy
     
-    # Try predicting a new aircraft
+    # Test on a new aircraft
     print("Try predicting a new plane...")
-    new_plane = [440, 24, 15000, 4]  # Example input
+    new_plane = [440, 24, 15000, 4]  # random values (bomber)
     result = clf.predict([new_plane])
     print("Prediction: ", "Bomber" if result[0] == 1 else "Fighter")
+    visualize_tree()
 
 if __name__ == "__main__":
     main()
