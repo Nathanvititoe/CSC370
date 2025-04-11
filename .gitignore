@@ -1,0 +1,4 @@
+**/*.ipynb
+**/*.json
+**/*.jupyterlab-workspace
+Assignment1.1/.ipynb_checkpoints/.gitignore-checkpoint
