@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[31]:
+# In[1]:
 
 
 # IMPORTS
@@ -12,16 +12,18 @@ import matplotlib.pyplot as plt
 from sklearn.tree import plot_tree
 
 
-# In[32]:
+# In[2]:
 
 
 # Ui Introduction 
 def intro():
     print("--- WWII Aircraft Radar Classifier ---")
-    print("This tool is meant to determine whether incoming aircraft are fighters or bombers in a WWII Radar Simulator.\n")
+    print("This machine learning model is meant to determine whether incoming aircraft are fighters or bombers in a WWII Radar Simulator.\n")
+    print("The model will learn using known World War 2 fighter and bomber aircraft wingspans and fuselage lengths,\n")
+    print("The model should be able to accurately predict whether a plane is a fighter or bomber when given Wingspan and Fuselage Length as inputs\n")
 
 
-# In[33]:
+# In[3]:
 
 
 # provided sample data w/ features: [Wingspan, Fuselage Length]
@@ -60,7 +62,7 @@ predictions = clf.predict(features_test)
 accuracy = metrics.accuracy_score(labels_test, predictions)
 
 
-# In[34]:
+# In[4]:
 
 
 # create graph of decision tree for visualization
@@ -79,19 +81,19 @@ def visualize_tree():
     plt.show()
 
 
-# In[35]:
+# In[5]:
 
 
 def determinePlaneType(result):
-    if result[0] == 1:
+    if result[0] == 1: # 1 = Bomber
         return "Bomber"
-    elif result[0] == 0:
+    elif result[0] == 0: # 0 = Fighter
         return "Fighter"
     else:
-        return "Invalid Label Return"
+        return "Invalid Label Return" # anything else is an error
 
 
-# In[36]:
+# In[6]:
 
 
 def getUserPlaneTest():
@@ -105,16 +107,16 @@ def getUserPlaneTest():
             print("Invalid measurement, make sure its a number\n")
 
 
-# In[37]:
+# In[7]:
 
 
 def main():
     intro()
     print("--- Completed Training ---")
     print(f"Test Accuracy: {accuracy * 100:.2f}%\n") # print accuracy up to 2 decimals
-
+    print("Now you have the opportunity to test the model by providing inputs!\n\n")
     # give user option to test the model with their own values    
-    useUserInput = input("Would you like to test with your own values? (yes/no) \n").strip().lower()
+    useUserInput = input("Would you like to test with your own inputs? (yes/no) \n").strip().lower()
     if useUserInput in ["yes", "y"]:
         new_plane = getUserPlaneTest()
     else: 
