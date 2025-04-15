@@ -21,10 +21,10 @@ __pycache__/
 *.py[cod]
 
 # Assignment 1.2 
-Assignment1.2/aircraft_dataset/*
-!Assignment1.2/aircraft_dataset/.gitkeep
-Assignment1.2/trainedModels/*
-!Assignment1.2/trainedModels/.gitkeep
-!Assignment1.2/Visualizations/.gitkeep
+Assignment2.1/aircraft_dataset/*
+!Assignment2.1/aircraft_dataset/.gitkeep
+Assignment2.1/trainedModels/*
+!Assignment2.1/trainedModels/.gitkeep
+!Assignment2.1/Visualizations/.gitkeep
 
 
