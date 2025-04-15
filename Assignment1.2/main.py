@@ -54,7 +54,7 @@ def train_model():
     print("\nStep 4: Save the Model...")
     print("Saving the trained model to a folder to use later...\n")
     # save the trained model to the trainedModel directory
-    model.save("trainedModels/aircraft_classifier.h5")
+    model.save("trainedModels/aircraft_classifier.keras")
 
     print("\nStep 5: Test the model...")
     print("Testing the model with images it hasn't seen before...\n")
