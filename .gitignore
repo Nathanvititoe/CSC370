@@ -1,5 +1,30 @@
+# jupyterlabs files and notebooks
 **/*.ipynb
 **/*.json
 **/*.jupyterlab-workspace
 Assignment1.1/.ipynb_checkpoints/.gitignore-checkpoint
 .ipynb_checkpoints/.gitignore-checkpoint
+
+# vsCode settings
+.vscode/
+
+# Python virtual envs
+.env/
+.venv/
+venv/
+
+# Logs / temp files
+*.log
+
+# python cache
+__pycache__/
+*.py[cod]
+
+# Assignment 1.2 
+Assignment1.2/aircraft_dataset/*
+!Assignment1.2/aircraft_dataset/.gitkeep
+Assignment1.2/trainedModels/*
+!Assignment1.2/trainedModels/.gitkeep
+!Assignment1.2/Visualizations/.gitkeep
+
+
