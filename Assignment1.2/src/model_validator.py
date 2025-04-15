@@ -10,7 +10,7 @@ def model_validator():
     batch_size = 32 # num of imgs per batch
 
     # load trained model from file
-    model = load_model("trainedModel/aircraft_classifier.h5")
+    model = load_model("trainedModels/aircraft_classifier.h5")
 
     # load the validation dataset
     _, val_ds, class_names = load_dataset(data_path, img_size, batch_size)
