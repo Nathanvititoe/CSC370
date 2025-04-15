@@ -24,7 +24,7 @@ def visualize_predictions(model, val_ds, class_names, num_images=9):
             plt.title(
                 f"Prediction: {predicted} Confidence: ({confidence:.0%})\nActual: {actual}", 
                 color=title_color,
-                font_size=10
+                fontsize=10
                 )
             plt.axis("off") # turn off axis
 

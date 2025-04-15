@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow.keras.preprocessing import image # type: ignore
 
 # This function loads an image file and uses the trained model to predict its class
-def predict_image(model, class_names):
+def predict_image(model, class_names, img_size):
     print("\nWould you like to classify a new image? (yes/no)")
     user_response = input("Enter 'yes' to continue: ").strip().lower()
 
@@ -16,7 +16,7 @@ def predict_image(model, class_names):
 
     try:
         # load the user's image and preprocess
-        img = image.load_img(img_path, target_size=(180, 180)) # load and resize
+        img = image.load_img(img_path, target_size=img_size) # load and resize
         img_array = image.img_to_array(img) # convert img to arr for tensorflow
         
         # simulate a batch size of one and normalize pixel values
