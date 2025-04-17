@@ -9,7 +9,7 @@ def model_validator(data_dir, img_size, batch_size):
     model = load_model("trainedModels/aircraft_classifier.keras")
 
     # load the validation dataset
-    _, val_ds, _ = load_dataset(data_dir, img_size, batch_size, cache=False)
+    _, val_ds, _ = load_dataset(data_dir, img_size, batch_size)
 
     # evaluate the model, returning loss (err) and accuracy
     loss, acc = model.evaluate(val_ds)

@@ -32,11 +32,12 @@ def train_model():
     introduction() # description of project for user
     full_dataset_path = "./aircraft_dataset/crop"  # path after dataset is unzipped
     subset_path = "./aircraft_dataset/aircraft_subset" # subset of aircraft classes
+    small_subset ="./aircraft_dataset/small_subset"
 
-    data_path = subset_path # what dataset we are using
+    data_path = full_dataset_path # what dataset we are using
 
-    #TODO: convert this back to 180 if accuracy is not performing
-    img_size = (180, 180) # ensure all images are the same size
+    #TODO: convert this back to 180 if accuracy is not performing/ and 32 batch
+    img_size = (180,180) # ensure all images are the same size
     batch_size = 32 # num of imgs in each training batch
 
     print("\nStep 1: Assign Labels...")
@@ -58,25 +59,28 @@ def train_model():
     # stops training early if validation accuracy doesn't improve for 3 epochs
     early_stop = EarlyStopping(
         monitor='val_accuracy', # what to watch for
-        min_delta=0.005, # will stop early if < .1% improvement between patience epochs
+        min_delta=0.001, # will stop early if < .1% improvement between patience epochs
         patience=3, # number of epochs improvement must be seen across
         restore_best_weights=True # roll back to best weights
     )
 
-    # reduce learning rate if validation loss isnt improving
+    # # reduce learning rate if validation loss isnt improving
     reduce_lr = ReduceLROnPlateau(
-        monitor='val_loss', # watch validation loss
-        factor=0.5, # reduce LR by half
-        patience=1, # wait 1 epoch before reducing
-        verbose=1 # print when LR changes
+        monitor='val_loss',
+        factor=0.5,
+        patience=2,
+        min_delta=0.005,
+        cooldown=1,
+        min_lr=1e-6,
+        verbose=1
     )
 
     print("\nStep 3: Train the Model...")
-    print("Pass over the dataset 15 times (15 epochs), please wait... \n")
+    print("Pass over the dataset 30 times (30 epochs), please wait... \n")
 
     # Train the model
     #   defines the validation set, and how many epochs (passes over the training data)
-    model.fit(train_ds, validation_data=val_ds, epochs=15, callbacks=[early_stop, reduce_lr])
+    model.fit(train_ds, validation_data=val_ds, epochs=30, callbacks=[early_stop, reduce_lr])
 
     print("\nStep 4: Save the Model...")
     print("Saving the trained model to a folder to use later...\n")
