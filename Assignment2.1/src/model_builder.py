@@ -2,18 +2,71 @@
 import tensorflow
 from tensorflow import keras
 from tensorflow.keras import layers # type: ignore
-from tensorflow.keras.optimizers import Adam # type: ignore
+from tensorflow.keras.optimizers import Adamax # type: ignore
 from tensorflow.keras.metrics import SparseTopKCategoricalAccuracy # type: ignore
+from tensorflow.keras.applications import EfficientNetB3 # type: ignore
 
+from tensorflow.keras.models import Model # type: ignore
+
+# from online example
+from tensorflow.keras.layers import Dense, Dropout, Flatten # type: ignore
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.preprocessing.image import ImageDataGenerator # type: ignore
+
+# data augmentation
+train_gen = ImageDataGenerator(
+        rescale=1.0/255,          
+        rotation_range=30,         
+        width_shift_range=0.2,     
+        height_shift_range=0.2,    
+        shear_range=0.2,           
+        zoom_range=0.2,            
+        horizontal_flip=True,      
+        vertical_flip=True,        
+        brightness_range=[0.7, 1.3], 
+        fill_mode='nearest' 
+)
+test_gen = ImageDataGenerator(rescale = 1.0/255)
+
+def build_pretrained_model(input_shape, num_classes, dropout_rate, learning_rate):
+    # Load a pretrained model (exclude top layer)
+    base_model = EfficientNetB3(input_shape=input_shape, include_top=False, weights='imagenet', pooling='avg')
+    base_model.trainable = False  # freeze for now
+
+    inputs = keras.Input(shape=input_shape)
+    x = base_model(inputs, training=False)
+    x = layers.Dropout(dropout_rate)(x)
+    x = layers.Dense(128, activation="relu")(x)
+    x = layers.Dropout(0.2)(x)
+    outputs = layers.Dense(num_classes, activation="softmax")(x)
+
+    # inputs = keras.Input(shape=input_shape)
+    # x = preprocess_input(inputs)  
+    # # x = layers.Rescaling(1./255)(inputs) # not for efficientNet
+    # x = base_model(x, training=False)
+    # x = layers.GlobalAveragePooling2D()(x)
+    # x = layers.Dropout(dropout_rate)(x)
+    # outputs = layers.Dense(num_classes, activation='softmax')(x)
+
+    model = Model(inputs, outputs)
+
+    optimizer  = Adamax(learning_rate=learning_rate)
+    
+    model.compile(
+        optimizer=optimizer,
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    return model
 
 # Convulutional neural networks: Uses filters to scan an image, producing a feature map that's passed to the next layer
 # builds a CNN model for image classification (convulutional neural network)
-def build_model(input_shape, num_classes):
+def build_custom_model(input_shape, num_classes):
      # augment data to prevent overfitting
     data_augmentation = keras.Sequential([
-        layers.RandomFlip("horizontal"),# flip images
-        layers.RandomFlip("vertical"),# flip images
-        layers.RandomRotation(0.05), # random image rotations
+        layers.RandomFlip("horizontal_and_vertical"),# flip images
+        layers.RandomRotation(0.2), # random image rotations
         # layers.RandomContrast(0.05) # slight shadows/lighting filter
     ])
 
@@ -23,20 +76,18 @@ def build_model(input_shape, num_classes):
         data_augmentation, # augment training data to prevent overfitting
         layers.Rescaling(1./255), # normalize pixels (0-1 range instead of 0-255)
 
-
-        # first convolution
+        # first convolutional layer
         layers.Conv2D(16, (3, 3), activation='relu'),
 
-        # second 
+        # second convolutional layer
         layers.Conv2D(32, (3, 3), activation='relu'),
         # layers.MaxPooling2D(), # downsamples images (shrinks the detail, keeping important features)
 
-        # second convolution
+        # third convolutional layer
         layers.Conv2D(64, (3, 3), activation='relu'),   
 
         # layers.MaxPooling2D(), # downsamples images (shrinks the detail, keeping important features)
-
-        # third convolution
+        # fourth convolutional layer
         layers.Conv2D(128, (3, 3), activation='relu'),
 
         layers.MaxPooling2D(), # more downsampling
@@ -46,8 +97,6 @@ def build_model(input_shape, num_classes):
         # layers.GlobalAveragePooling2D(), # takes average of 3d vectors 
         layers.Dense(128, activation='relu'), # look for relationship between the flattened features
         layers.Dropout(0.1), # randomly disables 10% of nodes during training (reduce overfitting)
-        # Test removing dropout and increasing augmentation
-        # layers.Dropout(0.2), # disable 20% of nodes to prevent overfitting
 
         # output layer
         layers.Dense(num_classes, activation='softmax') # outputs a probability for each class of plane

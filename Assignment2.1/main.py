@@ -1,7 +1,8 @@
 # import libraries
 import tensorflow as tf
 from src.dataset_loader import load_dataset # dataset loader function
-from src.model_builder import build_model  # function that builds the model
+from src.model_builder import build_pretrained_model  # function that builds the pretrained model
+from src.model_builder import build_custom_model  # function that builds the custom model
 from src.model_visualizer import visualize_predictions # function to visualize predictions
 from src.model_validator import model_validator # function to validate trained models accuracy
 from src.custom_prediction import predict_image # function to run prediction on user image
@@ -36,7 +37,6 @@ def train_model():
 
     data_path = full_dataset_path # what dataset we are using
 
-    #TODO: convert this back to 180 if accuracy is not performing/ and 32 batch
     img_size = (180,180) # ensure all images are the same size
     batch_size = 32 # num of imgs in each training batch
 
@@ -53,7 +53,7 @@ def train_model():
     # Build the model
     #   input_shape is the image size and we want all 3 colors (RGB)
     #   num_classes is the num of different aircraft types we will predict
-    model = build_model(input_shape=img_size + (3,), num_classes=len(class_names))
+    model = build_pretrained_model(input_shape=img_size + (3,), num_classes=len(class_names))
 
 
     # stops training early if validation accuracy doesn't improve for 3 epochs
