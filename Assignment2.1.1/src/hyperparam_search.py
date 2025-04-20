@@ -4,7 +4,9 @@ import torch.nn as nn # type: ignore
 import torch.optim as optim # type: ignore
 from torch.utils.data import DataLoader # type: ignore
 from optuna.pruners import MedianPruner # type: ignore
-from skorch import NeuralNetClassifier  # type: ignore # sklearn-style PyTorch wrapper
+from skorch import NeuralNetClassifier  # type: ignore 
+from skorch.callbacks import EpochScoring, PrintLog # type: ignore
+
 from model_builder import build_model
 from dataset_loader import load_dataset
 
@@ -19,8 +21,7 @@ subset_path = "./aircraft_dataset/aircraft_subset"
 small_subset = "./aircraft_dataset/small_subset"
 data_path = full_dataset_path
 
-img_size = (224, 224)
-batch_size = 16
+img_size = (128, 128)
 
 # ensure it uses gpu acceleration, error otherwise
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -32,9 +33,16 @@ def get_hyperparams(trial):
     dropout = trial.suggest_float("dropout", 0.15, 0.35) # search between 0.15-0.35 dropout
     lr = trial.suggest_float("lr", 1e-4, 3e-3, log=True) # search between 1e-4-3e-4 for LR
     dense_units = trial.suggest_int("dense_units", 128, 512, step=64) # search between 128-512 dense_units, stepping by 64
+    batch_size = trial.suggest_categorical("batch_size", [32, 64])
 
     # load prepared datasets
-    train_ds, val_ds, class_names = load_dataset(data_path, img_size, batch_size)
+    train_loader, val_loader, class_names = load_dataset(data_path, img_size, batch_size)
+
+    # pass skorch the raw ds only
+    train_ds = train_loader.dataset
+    val_ds = val_loader.dataset
+
+    # get number of class names
     num_classes = len(class_names)
 
     # build the model with sample hyperparams
@@ -50,15 +58,22 @@ def get_hyperparams(trial):
         device=device, # only train using GPU
         train_split=None, # disable internal split (we did this in load_dataset)
         batch_size=batch_size,
-        verbose=1 # dont log 
+        verbose=1, 
+        callbacks=[
+        EpochScoring(scoring='accuracy', lower_is_better=False, name='val_acc', on_train=False),
+        PrintLog()
+    ]
     )
 
     # train the model
-    net.fit(train_ds.dataset, y=None)
+    net.fit(train_ds, y=None)
 
     # evaluate val_acc
     val_acc = net.score(val_ds, y=None)  # get acc score using skorch
     trial.report(val_acc , step=0) # output val acc
+
+    # log the trial results
+    print(f"Trial {trial.number}: dropout={dropout:.3f}, lr={lr:.5f}, units={dense_units}, val_acc={val_acc:.4f}")
 
     # prune poorly performing trials (end early)
     if trial.should_prune():
