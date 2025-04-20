@@ -22,17 +22,13 @@ tfenv/
 __pycache__/
 *.py[cod]
 
-# Assignment 2.1.1
-Assignment2.1.1/aircraft_dataset/*
-!Assignment2.1.1/aircraft_dataset/.gitkeep
-Assignment2.1.1/trainedModels/*
-!Assignment2.1.1/trainedModels/.gitkeep
-!Assignment2.1.1/Visualizations/.gitkeep
+# AircraftClassifier
+AircraftClassifier/aircraft_dataset/*
+!AircraftClassifier/aircraft_dataset/.gitkeep
+AircraftClassifier/trainedModels/*
+!AircraftClassifier/trainedModels/.gitkeep
+!AircraftClassifier/Visualizations/.gitkeep
 
-# Assignment 2.1.2
-Assignment2.1.2/aircraft_dataset/*
-!Assignment2.1.2/aircraft_dataset/.gitkeep
-Assignment2.1.2/trainedModels/*
-!Assignment2.1.2/trainedModels/.gitkeep
-!Assignment2.1.2/Visualizations/.gitkeep
+# Assignment 2.1
+
 
