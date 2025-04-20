@@ -1,12 +1,8 @@
 # for image loading & preprocessing
 from torchvision import datasets, transforms  # type: ignore 
 
-# for splitting the dataset
-from torch.utils.data import random_split, DataLoader      # type: ignore
-
 # function to load and prepare the dataset for the model
-def load_dataset(data_dir, img_size, batch_size=16):
-    val_split = 0.2
+def load_dataset(data_dir, img_size):
     # preprocessing the images
     transform = transforms.Compose([
         transforms.Resize(img_size), # resize images to match img_size resolution
@@ -20,55 +16,11 @@ def load_dataset(data_dir, img_size, batch_size=16):
     # load dataset from file (subfolder names = class labels)
     dataset = datasets.ImageFolder(root=data_dir, transform=transform)
 
-
-    # TEST LOGS
-    if len(dataset) == 0:
-        raise RuntimeError(f"🚨 No data loaded. Is '{data_dir}' a valid path with labeled subfolders?")
-    
-    print(f"Loaded {len(dataset)} images from: {data_dir}")
-    print(f"Class names: {dataset.classes}")
-
-    # get number of samples for validation/training
-    val_size = int(len(dataset) * val_split)
-    train_size = len(dataset) - val_size
-
-    # TEST LOGS
-    # Safety checks
-    if train_size <= 0 or val_size <= 0:
-        raise ValueError(f"Invalid split: train={train_size}, val={val_size}")
-
-    if batch_size > train_size or batch_size > val_size:
-        raise ValueError(f"Batch size {batch_size} too large for split sizes")
-    
-    # split train/validation datasets
-    train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
-
     # get class names from subfolder names
     class_names = dataset.classes
 
-    # # use pytorch dataloaders to load ds using cpu/gpu in parallel and prefetch
-    # train_loader = DataLoader(
-    #     train_dataset,
-    #     batch_size=batch_size, 
-    #     shuffle=True,
-    #     num_workers=8, 
-    #     pin_memory=True, 
-    #     persistent_workers=True, 
-    #     prefetch_factor=4
-    #     )
-
-    # val_loader = DataLoader(
-    #     val_dataset, 
-    #     batch_size=batch_size, 
-    #     shuffle=False,
-    #     num_workers=8, 
-    #     pin_memory=True, 
-    #     persistent_workers=True, 
-    #     prefetch_factor=4 
-    #     )
-
     # return datasets and class names
-    return train_dataset, val_dataset, class_names
+    return dataset, class_names
 
 
 

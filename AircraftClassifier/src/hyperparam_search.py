@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader # type: ignore
 from optuna.pruners import MedianPruner # type: ignore
 from skorch import NeuralNetClassifier  # type: ignore 
 from skorch.callbacks import EpochScoring, PrintLog # type: ignore
+from skorch.dataset import ValidSplit # type: ignore
 
 from model_builder import build_model
 from dataset_loader import load_dataset
@@ -36,11 +37,7 @@ def get_hyperparams(trial):
     batch_size = trial.suggest_categorical("batch_size", [64, 128])
 
     # load prepared datasets
-    train_ds, val_ds, class_names = load_dataset(data_path, img_size, batch_size)
-
-    # pass skorch the raw ds only
-    # train_ds = train_loader.dataset
-    # val_ds = val_loader.dataset
+    dataset, class_names = load_dataset(data_path, img_size)
 
     # get number of class names
     num_classes = len(class_names)
@@ -56,13 +53,15 @@ def get_hyperparams(trial):
         max_epochs=15, # total epochs
         lr=lr, # sample learning rate from Optuna
         device=device, # only train using GPU
-        train_split=None, # disable internal split (we did this in load_dataset)
+        train_split=ValidSplit(0.2, stratified=True, random_state=42), # split the ds
         batch_size=batch_size,
-        iterator_train__num_workers=8,# speed up dataset loading
+        # speed up dataset loading
+        iterator_train__num_workers=8,
         iterator_train__pin_memory=True,
         iterator_valid__num_workers=8,
         iterator_valid__pin_memory=True,
         verbose=0, 
+        # logging callbacks
         callbacks=[
         EpochScoring(scoring='accuracy', lower_is_better=False, name='val_acc', on_train=False),
         EpochScoring(scoring='accuracy', lower_is_better=False, name='train_acc', on_train=True),
@@ -70,11 +69,12 @@ def get_hyperparams(trial):
     ]
     )
 
+    y_labels = torch.tensor(dataset.targets)
     # train the model
-    net.fit(train_ds, y=None)
+    net.fit(dataset, y=y_labels) # no manual splitting, skorch does it
 
     # evaluate val_acc
-    val_acc = net.score(val_ds, y=None)  # get acc score using skorch
+    val_acc = max(net.history[:, 'val_acc'])  # get best val_acc this trial
     trial.report(val_acc , step=0) # output val acc
 
     # log the trial results
