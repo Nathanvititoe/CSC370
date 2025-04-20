@@ -12,6 +12,8 @@ Assignment1.1/.ipynb_checkpoints/.gitignore-checkpoint
 .env/
 .venv/
 venv/
+tfenv/
+./tfenv
 
 # Logs / temp files
 *.log
@@ -20,11 +22,17 @@ venv/
 __pycache__/
 *.py[cod]
 
-# Assignment 1.2 
-Assignment2.1/aircraft_dataset/*
-!Assignment2.1/aircraft_dataset/.gitkeep
-Assignment2.1/trainedModels/*
-!Assignment2.1/trainedModels/.gitkeep
-!Assignment2.1/Visualizations/.gitkeep
+# Assignment 2.1.1
+Assignment2.1.1/aircraft_dataset/*
+!Assignment2.1.1/aircraft_dataset/.gitkeep
+Assignment2.1.1/trainedModels/*
+!Assignment2.1.1/trainedModels/.gitkeep
+!Assignment2.1.1/Visualizations/.gitkeep
 
+# Assignment 2.1.2
+Assignment2.1.2/aircraft_dataset/*
+!Assignment2.1.2/aircraft_dataset/.gitkeep
+Assignment2.1.2/trainedModels/*
+!Assignment2.1.2/trainedModels/.gitkeep
+!Assignment2.1.2/Visualizations/.gitkeep
 
