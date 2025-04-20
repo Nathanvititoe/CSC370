@@ -33,14 +33,14 @@ def get_hyperparams(trial):
     dropout = trial.suggest_float("dropout", 0.15, 0.35) # search between 0.15-0.35 dropout
     lr = trial.suggest_float("lr", 1e-4, 3e-3, log=True) # search between 1e-4-3e-4 for LR
     dense_units = trial.suggest_int("dense_units", 128, 512, step=64) # search between 128-512 dense_units, stepping by 64
-    batch_size = trial.suggest_categorical("batch_size", [32, 64])
+    batch_size = trial.suggest_categorical("batch_size", [64, 128])
 
     # load prepared datasets
-    train_loader, val_loader, class_names = load_dataset(data_path, img_size, batch_size)
+    train_ds, val_ds, class_names = load_dataset(data_path, img_size, batch_size)
 
     # pass skorch the raw ds only
-    train_ds = train_loader.dataset
-    val_ds = val_loader.dataset
+    # train_ds = train_loader.dataset
+    # val_ds = val_loader.dataset
 
     # get number of class names
     num_classes = len(class_names)
@@ -58,10 +58,15 @@ def get_hyperparams(trial):
         device=device, # only train using GPU
         train_split=None, # disable internal split (we did this in load_dataset)
         batch_size=batch_size,
-        verbose=1, 
+        iterator_train__num_workers=8,# speed up dataset loading
+        iterator_train__pin_memory=True,
+        iterator_valid__num_workers=8,
+        iterator_valid__pin_memory=True,
+        verbose=0, 
         callbacks=[
         EpochScoring(scoring='accuracy', lower_is_better=False, name='val_acc', on_train=False),
-        PrintLog()
+        EpochScoring(scoring='accuracy', lower_is_better=False, name='train_acc', on_train=True),
+        PrintLog(keys_ignored=None)
     ]
     )
 

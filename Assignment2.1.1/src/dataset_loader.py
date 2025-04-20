@@ -46,29 +46,29 @@ def load_dataset(data_dir, img_size, batch_size=16):
     # get class names from subfolder names
     class_names = dataset.classes
 
-    # use pytorch dataloaders to load ds using cpu/gpu in parallel and prefetch
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=batch_size, 
-        shuffle=True,
-        num_workers=4, 
-        pin_memory=True, 
-        persistent_workers=True, 
-        prefetch_factor=4
-        )
+    # # use pytorch dataloaders to load ds using cpu/gpu in parallel and prefetch
+    # train_loader = DataLoader(
+    #     train_dataset,
+    #     batch_size=batch_size, 
+    #     shuffle=True,
+    #     num_workers=8, 
+    #     pin_memory=True, 
+    #     persistent_workers=True, 
+    #     prefetch_factor=4
+    #     )
 
-    val_loader = DataLoader(
-        val_dataset, 
-        batch_size=batch_size, 
-        shuffle=False,
-        num_workers=4, 
-        pin_memory=True, 
-        persistent_workers=True, 
-        prefetch_factor=4 
-        )
+    # val_loader = DataLoader(
+    #     val_dataset, 
+    #     batch_size=batch_size, 
+    #     shuffle=False,
+    #     num_workers=8, 
+    #     pin_memory=True, 
+    #     persistent_workers=True, 
+    #     prefetch_factor=4 
+    #     )
 
     # return datasets and class names
-    return train_loader, val_loader, class_names
+    return train_dataset, val_dataset, class_names
 
 
 
