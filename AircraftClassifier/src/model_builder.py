@@ -15,6 +15,8 @@ weight_decay = 2.3e-5
 # test different pretrained models
 # see how pretrain classifier compares to custom
 # test w full dataset using curr best params, and wider net params
+# find model to test w lower res images EfficientNetB0 or MobileNetV2/V3
+# LR reducer? LR Scheduler?
 
 # Function to build pretrained base, custom head
 def build_model(num_classes, dropout_rate=0.35, dense_units=256):

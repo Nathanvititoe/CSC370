@@ -24,7 +24,7 @@ warnings.filterwarnings("ignore")
 # Paths and params
 full_dataset_path = "./aircraft_dataset/crop"
 small_subset = "./aircraft_dataset/small_subset"
-data_path = small_subset
+data_path = full_dataset_path
 
 # https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/
 img_size = (224, 224)
