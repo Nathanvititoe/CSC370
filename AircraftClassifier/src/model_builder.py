@@ -6,11 +6,23 @@ import torch.nn as nn  # type: ignore
 
 # pretrained models import
 import torchvision.models as models  # type: ignore
+dropout = 0.349
+lr = 0.000506
+dense_units = 255
+weight_decay = 2.3e-5
+
+# TODO: 
+# test different pretrained models
+# see how pretrain classifier compares to custom
+# test w full dataset using curr best params, and wider net params
 
 # Function to build pretrained base, custom head
-def build_model(num_classes, dropout_rate=0.2, dense_units=256):
+def build_model(num_classes, dropout_rate=0.35, dense_units=256):
     # Load EfficientNetB0 trained on imageNet
-        # EfficientNetB3, best valAcc was 90%
+        # EfficientNetB3, best valAcc was 90% on small_subset
+        # EfficientNetB0, best valAcc was 92% on small_subset
+
+
     # - EfficientNet will identify which features are important
     base_model = models.efficientnet_b0(weights='IMAGENET1K_V1')
     
@@ -19,14 +31,33 @@ def build_model(num_classes, dropout_rate=0.2, dense_units=256):
     # Strip off the original top layer to add a custom one
     base_model.classifier = nn.Identity()
 
-    # create a custom top layer classifier
-    #   - custom classifier determines which features mean what
+    # # create a custom top layer classifier
+    # #   - custom classifier determines which features mean what
+    # #   - highest val_acc of 92% on small_subset
+    # classifier = nn.Sequential(
+    #     nn.BatchNorm1d(pretrained_feature_output), # normalize
+    #     nn.Linear(pretrained_feature_output, dense_units), # 
+    #     nn.ReLU(), # apply activation function for non-linearity
+    #     nn.Dropout(dropout_rate), # drop a % of neurons every pass
+    #     nn.Linear(dense_units, num_classes) # converts raw output to output classes 
+    # )
+
+    # Test for full dataset
     classifier = nn.Sequential(
-        nn.BatchNorm1d(pretrained_feature_output), # normalize
-        nn.Linear(pretrained_feature_output, dense_units), # 
-        nn.ReLU(), # apply activation function for non-linearity
-        nn.Dropout(dropout_rate), # drop a % of neurons every pass
-        nn.Linear(dense_units, num_classes) # converts raw output to output classes 
+        # conv layer 1
+        nn.BatchNorm1d(pretrained_feature_output),
+        nn.Linear(pretrained_feature_output, dense_units),
+        nn.ReLU(inplace=True),
+        nn.Dropout(dropout_rate),
+        
+        # conv layer 2
+        nn.BatchNorm1d(dense_units),
+        nn.Linear(dense_units, dense_units // 2),
+        nn.ReLU(inplace=True),
+        nn.Dropout(dropout_rate / 2),
+        
+        # output layer
+        nn.Linear(dense_units // 2, num_classes)
     )
 
     # combined class for easy calling elsewhere
@@ -42,48 +73,3 @@ def build_model(num_classes, dropout_rate=0.2, dense_units=256):
             return x
 
     return CombinedModel()
-    
-
-    # dont use tf model anymore, too complex for gpu acceleration
-    # # import tf library and keras
-# from tensorflow import keras # type: ignore
-# from tensorflow.keras.models import Sequential, Model # type: ignore
-# from tensorflow.keras.layers import Dense, Dropout, Flatten, BatchNormalization # type: ignore
-# from tensorflow.keras.applications import EfficientNetB3 # type: ignore
-# from tensorflow.keras.optimizers import Adamax # type: ignore
-# from tensorflow.keras.preprocessing.image import ImageDataGenerator # type: ignore
-# from tensorflow.keras import regularizers # type: ignore
-
-# def build_pretrained_model(input_shape, num_classes, dropout_rate, learning_rate, dense_units):
-#     # try loading a pretrained model (exclude top layer)
-#     # Load EfficientNetB3 as base model
-#     base_model = keras.applications.EfficientNetB3(
-#         include_top=False,
-#         weights="imagenet",
-#         input_shape=input_shape,
-#         pooling="max"
-#     )
-
-#     # build the convNet
-#     model = Sequential([
-#         base_model, # pretrained  model
-#         BatchNormalization(), # normalize
-        
-#         # hidden custom layers w/ 256 filters and L2 regularization (penalize large weights to prevent overfit)
-#         # Dense(256, activation='relu', kernel_regularizer= regularizers.l2(0.01)),
-#         Dense(dense_units, activation='relu', kernel_regularizer= regularizers.l2(0.01)), # dynamic dense filters for optuna study
-        
-#         # Dropout(0.2),
-#         Dropout(dropout_rate), # use dynamic dropout for optuna study
-        
-#         Dense(num_classes, activation='softmax')  # change depending on dataset
-#     ])
-
-#     # Compile the model
-#     # model.compile(optimizer=Adamax(learning_rate=0.001),
-#     model.compile(optimizer=Adamax(learning_rate=learning_rate), # use dynamic LR for optuna study
-#                 loss='categorical_crossentropy',
-#                 metrics=['accuracy'])
-
-#     model.summary()
-#     return model

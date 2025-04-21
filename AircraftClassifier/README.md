@@ -12,5 +12,8 @@ Used Optuna to run hyperparameter search and utilized Pretrained models as a bas
 
     With EfficientNetB3, 128x128 resolution, and Optuna maximizing val_acc the best Optuna Trial returned a 90% Validation Accuracy
 
-    With EfficientNetB0, 224x224 resolution and Optuna set to minimize val_loss, 
+    With EfficientNetB0, 224x224 resolution and Optuna set to maximize val_acc the best Trial returned a 92% Validation accuracy
+
+Once I had my dropout, learning rate, dense_units and weight decay dialed in, I tested trials for different augmentation (light, medium or heavy) to see which produced higher validation accuracy and prevented overfitting without sacrificing accuracy. 
+
 
