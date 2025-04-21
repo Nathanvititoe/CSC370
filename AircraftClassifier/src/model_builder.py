@@ -9,9 +9,10 @@ import torchvision.models as models  # type: ignore
 
 # Function to build pretrained base, custom head
 def build_model(num_classes, dropout_rate=0.2, dense_units=256):
-    # Load EfficientNetB3 trained on imageNet
+    # Load EfficientNetB0 trained on imageNet
+        # EfficientNetB3, best valAcc was 90%
     # - EfficientNet will identify which features are important
-    base_model = models.efficientnet_b3(weights='IMAGENET1K_V1')
+    base_model = models.efficientnet_b0(weights='IMAGENET1K_V1')
     
     pretrained_feature_output = base_model.classifier[1].in_features # get num of features from base_model
     

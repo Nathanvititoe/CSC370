@@ -7,6 +7,8 @@ from optuna.pruners import MedianPruner # type: ignore
 from skorch import NeuralNetClassifier  # type: ignore 
 from skorch.callbacks import EpochScoring, PrintLog # type: ignore
 from skorch.dataset import ValidSplit # type: ignore
+from torch._dynamo import OptimizedModule  # type: ignore
+from skorch.callbacks import EarlyStopping # type: ignore
 
 from model_builder import build_model
 from dataset_loader import load_dataset
@@ -14,15 +16,17 @@ from dataset_loader import load_dataset
 
 # ignore unnecessary warnings
 import warnings
+import logging
+logging.getLogger("torch._inductor").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore")
 
 # Paths and params
 full_dataset_path = "./aircraft_dataset/crop"
-subset_path = "./aircraft_dataset/aircraft_subset"
 small_subset = "./aircraft_dataset/small_subset"
-data_path = full_dataset_path
+data_path = small_subset
 
-img_size = (128, 128)
+# https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/
+img_size = (224, 224)
 
 # ensure it uses gpu acceleration, error otherwise
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -31,10 +35,10 @@ if device != "cuda":
 
 # Run an optuna study to get best hyperparams
 def get_hyperparams(trial):
-    dropout = trial.suggest_float("dropout", 0.15, 0.35) # search between 0.15-0.35 dropout
-    lr = trial.suggest_float("lr", 1e-4, 3e-3, log=True) # search between 1e-4-3e-4 for LR
-    dense_units = trial.suggest_int("dense_units", 128, 512, step=64) # search between 128-512 dense_units, stepping by 64
-    batch_size = trial.suggest_categorical("batch_size", [64, 128])
+    dropout = trial.suggest_float("dropout", 0.25, 0.4) # search for best performing dropout
+    lr = trial.suggest_float("lr", 7e-4, 1.2e-3, log=True) # search for best performing LR
+    dense_units = trial.suggest_categorical("dense_units", [160, 192, 224]) # search for best performing dense_units, stepping by 64
+    batch_size = trial.suggest_categorical("batch_size", [128, 256])
 
     # load prepared datasets
     dataset, class_names = load_dataset(data_path, img_size)
@@ -44,13 +48,17 @@ def get_hyperparams(trial):
 
     # build the model with sample hyperparams
     model = build_model(num_classes=num_classes, dropout_rate=dropout, dense_units=dense_units)
+    
+    # remove some python overhead to speed up trials/epochs after the first few 
+    # longer first trial, speeds up later epochs/trials
+    model: OptimizedModule = torch.compile(model, mode="reduce-overhead", disable=True) 
 
     # Wrap model with Skorch for training/validation
     net = NeuralNetClassifier(
         module=model,  # the built cnn
         criterion=nn.CrossEntropyLoss, # get loss
-        optimizer=torch.optim.Adam,    # use adam to optimize
-        max_epochs=15, # total epochs
+        optimizer=torch.optim.AdamW,    # use adamW to optimize
+        max_epochs=7, # total epochs
         lr=lr, # sample learning rate from Optuna
         device=device, # only train using GPU
         train_split=ValidSplit(0.2, stratified=True, random_state=42), # split the ds
@@ -60,36 +68,43 @@ def get_hyperparams(trial):
         iterator_train__pin_memory=True,
         iterator_valid__num_workers=8,
         iterator_valid__pin_memory=True,
-        verbose=0, 
-        # logging callbacks
+        # logging settings
+        verbose=0 , 
         callbacks=[
-        EpochScoring(scoring='accuracy', lower_is_better=False, name='val_acc', on_train=False),
+        # quit early if no val_acc improvement
+        EarlyStopping(monitor='valid_loss', patience=3),  # stops if no improvement in 3 epochs
+        # log training accuracy
         EpochScoring(scoring='accuracy', lower_is_better=False, name='train_acc', on_train=True),
-        PrintLog(keys_ignored=None)
+        
+        # log validation accuracy
+        EpochScoring(scoring='accuracy', lower_is_better=False, name='val_acc', on_train=False),
+        
+        # log all values 
+        PrintLog(keys_ignored=['batches'])
     ]
     )
 
-    y_labels = torch.tensor(dataset.targets)
     # train the model
+    y_labels = torch.tensor(dataset.targets)
     net.fit(dataset, y=y_labels) # no manual splitting, skorch does it
 
-    # evaluate val_acc
-    val_acc = max(net.history[:, 'val_acc'])  # get best val_acc this trial
-    trial.report(val_acc , step=0) # output val acc
+    # evaluate val_loss
+    val_loss = max(net.history[:, 'valid_loss'])  # get best/lowest val_loss this trial
+    trial.report(val_loss , step=0) # output val loss
 
     # log the trial results
-    print(f"Trial {trial.number}: dropout={dropout:.3f}, lr={lr:.5f}, units={dense_units}, val_acc={val_acc:.4f}")
+    print(f"Trial {trial.number}: dropout={dropout:.3f}, lr={lr:.5f}, units={dense_units}, val_loss={val_loss:.4f}")
 
     # prune poorly performing trials (end early)
     if trial.should_prune():
         raise optuna.exceptions.TrialPruned()
 
-    return val_acc  # lower is better
+    return val_loss  # lower is better
 
 # Run the Optuna study
 pruner = MedianPruner(n_warmup_steps=3) # wait 3 steps before pruning
-study = optuna.create_study(direction="maximize", pruner=pruner) # maximize val acc in study 
-study.optimize(get_hyperparams, n_trials=20) # run 20 trials
+study = optuna.create_study(direction="minimize", pruner=pruner) # minimize val loss in study 
+study.optimize(get_hyperparams, n_trials=25) # run 25 trials
 
 # Output best hyperparams  found by optuna study
 print("Best hyperparameters:")

@@ -6,6 +6,8 @@ def load_dataset(data_dir, img_size):
     # preprocessing the images
     transform = transforms.Compose([
         transforms.Resize(img_size), # resize images to match img_size resolution
+         transforms.RandomHorizontalFlip(p=0.5), # random flips for augmentation (prevent overfit)
+        transforms.ColorJitter(brightness=0.2, contrast=0.2), # adjust brightness/contrast for augmentation
         transforms.ToTensor(), # convert from [255,255] to [0,1] tensor
         transforms.Normalize(  # Normalize to [-1, 1] range
             mean=[0.5, 0.5, 0.5], 
