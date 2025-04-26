@@ -13,7 +13,7 @@ def build_model(input_shape, num_classes=3):
         weights='imagenet'  # use mobileNet weights from training on imagenet
     )
    
-    base_model.trainable = False  # freeze the pretrained base (dont let it learn)
+    base_model.trainable = True  # freeze the pretrained base (dont let it learn)
 
     model = models.Sequential([
         base_model, # start w mobileNet base
@@ -29,7 +29,7 @@ def build_model(input_shape, num_classes=3):
 def compile_and_train(model, final_train_ds, final_val_ds):
     print("\nCompiling the Model...")
     model.compile(
-        optimizer=optimizers.Adam(learning_rate=1e-4), # 0.0001 Learning rate w/ Adam as optimizer
+        optimizer=optimizers.Adam(learning_rate=5e-4), # 0.0005 Learning rate w/ Adam as optimizer
         loss="sparse_categorical_crossentropy", # used for int labels and multi-classification tasks
         metrics=["accuracy"], # monitor the accuracy
     )
@@ -47,14 +47,14 @@ def compile_and_train(model, final_train_ds, final_val_ds):
         monitor="val_accuracy", # what value to monitor
         factor=0.5, # how much to divide LR by
         patience=3, # how many epochs to wait before dropping
-        min_lr=1e-6 # set minimum LR
+        min_lr=1e-6 # set minimum LR (.000001)
         )
 
     print("\nTraining the Model...")
     model_history = model.fit(
         final_train_ds, # training data
         validation_data=final_val_ds, # validation data
-        epochs=10, # number of epochs to run
+        epochs=30, # number of epochs to run
         callbacks=[early_stop, reduce_lr], # define callbacks (Early stop, LR reducer)
         verbose=1,  # output logs
     )

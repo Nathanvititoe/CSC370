@@ -65,7 +65,7 @@ def visualize_predictions(model, val_loader, class_names, num_images=12):
 
         plt.subplot(3, 4, i + 1)
         plt.imshow(img) # show the images
-        plt.title(f"Pred: {pred_label}\nTrue: {true_label}", color=color) # prediction
+        plt.title(f"Pred: {pred_label}\nActual: {true_label}", color=color) # prediction
         plt.axis('off') # turn off axis
 
     plt.tight_layout() # adjust spacing
