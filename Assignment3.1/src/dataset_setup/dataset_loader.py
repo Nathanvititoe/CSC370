@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import tensorflow as tf
 
+
 # function to create a dataset, re
 def create_dataset(image_label_list, img_size, batch_size, shuffle=False):
     # split path/label tuple into two separate lists
@@ -15,7 +16,7 @@ def create_dataset(image_label_list, img_size, batch_size, shuffle=False):
         img = tf.io.read_file(path) # read the img file
         img = tf.image.decode_jpeg(img, channels=3) # convert jpg into a tensor
         img = tf.image.resize(img, img_size) # resize all imgs to match our set size (224x224)
-        img = img / 255.0 # normalize pixel values from the [0,255] range to the [0,1] range
+
         label = tf.cast(label, tf.int32)  # make sure labels are integers
         return img, label  # return processed images w/ their labels
     
@@ -49,7 +50,7 @@ def build_dataset_list(dataset_dir, class_map):
             img_path = folder_path / img_file
             dataset.append((str(img_path), label))
 
-    print(f"Loaded {len(dataset)} images.") # output total image count
+    print(f"\nLoaded {len(dataset)} images.") # output total image count
     return dataset
 
 # function to get the training and validation sets

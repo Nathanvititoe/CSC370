@@ -1,35 +1,75 @@
-from keras import layers, models, optimizers # type: ignore
+from keras import layers, models, optimizers, Sequential # type: ignore
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
-from keras.applications import MobileNetV2 # type: ignore
+from keras.applications import EfficientNetB0,MobileNetV3Small,MobileNetV3Large, EfficientNetB3# type: ignore
+
+# preprocessing methods for different pretrained models
+from keras.applications.mobilenet_v3 import preprocess_input as mobilenet_preprocess # type: ignore
+from keras.applications.efficientnet import preprocess_input as efficientnet_preprocess # type: ignore
+# Diff models validation accuracy
+
+    # EfficientNetB0(224x224) : 93.5% accuracy- small_subset/10 epochs
+    # EfficientNetB0(96x96) : 85.4% accuracy- small_subset/10 epochs
+
+    # more epochs? 
+    # EfficientNetB3(224x224) : __% accuracy- small_subset/10 epochs
+    # EfficientNetB3(96x96) : 86% accuracy- small_subset/10 epochs   
+    
+    # EfficientNetV2B0(224x224) : __% accuracy- small_subset/10 epochs
+    # EfficientNetV2B0(96x96) : __% accuracy- small_subset/10 epochs 
+
+    # EfficientNetV2B1(224x224) : __% accuracy- small_subset/10 epochs
+    # EfficientNetV2B1(96x96) : __% accuracy- small_subset/10 epochs 
+
+    # EfficientNetV2B2(224x224) : __% accuracy- small_subset/10 epochs
+    # EfficientNetV2B2(96x96) : __% accuracy- small_subset/10 epochs 
+
+    # MobileNetV3Small(224x224) : 88% - small_subset/10 epochs
+    # MobileNetV3Small(96x96) : 83.6% accuracy - small_subset/10 epochs
+    # MobileNetV3Small(96x96) : 84.6% accuracy - small_subset/30 epochs
+
+    # more epochs? 
+    # MobileNetV3Large(224x224) : 91% accuracy - small_subset/10 epochs
+    # MobileNetV3Large(96x96) : 87.3% accuracy - small_subset/10 epochs
 
 
 # function to build the CNN layers and filters
 # use transfer learning to get a more efficient model (base: mobileNet, classification layer: custom)
-def build_model(input_shape, num_classes=3):
-    base_model = MobileNetV2(
+def build_model(input_shape, num_classes):
+    # Define a Data Augmentation pipeline
+    data_augmentation = Sequential([
+        layers.RandomFlip("horizontal"),          # Flip images horizontally
+        layers.RandomRotation(0.1),                # Rotate randomly by ±10%
+        layers.RandomZoom(0.1),                    # Zoom in/out
+        layers.RandomContrast(0.1),                # Adjust contrast
+        layers.RandomTranslation(0.1, 0.1),        # Shift images around
+    ], name="data_augmentation")
+
+    base_model = EfficientNetB3(
         include_top=False,  # dont use mobileNet classification layer
         input_shape=input_shape, # use our defined input shape
-        pooling='avg', # global avg pooling ot flatten output
+        pooling='avg', # global avg pooling to flatten output
         weights='imagenet'  # use mobileNet weights from training on imagenet
     )
    
-    base_model.trainable = True  # freeze the pretrained base (dont let it learn)
+    base_model.trainable = False  # freeze the pretrained base (dont let it learn)
+    
+    inputs = layers.Input(shape=input_shape)
+    x = data_augmentation(inputs)
+    x = efficientnet_preprocess(x)  # preprocess for MobileNet
+    x = base_model(x, training=False) # pretrained model w/o top layer
+    x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
+    x = layers.Dropout(0.4)(x) # drop 40% of neurons to prevent overfitting
+    outputs = layers.Dense(num_classes, activation='softmax')(x) # final output layer
 
-    model = models.Sequential([
-        base_model, # start w mobileNet base
+    model = models.Model(inputs, outputs)
 
-        # custom classification layer
-        layers.Dense(128, activation='relu'), # dense layer to learn specific features for this goal
-        layers.Dropout(0.34), # drop 34% of neurons to prevent overfitting
-        layers.Dense(num_classes, activation='softmax') # final output layer
-    ])
     return model
 
 # function to compile and train the model
-def compile_and_train(model, final_train_ds, final_val_ds):
+def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
     print("\nCompiling the Model...")
     model.compile(
-        optimizer=optimizers.Adam(learning_rate=5e-4), # 0.0005 Learning rate w/ Adam as optimizer
+        optimizer=optimizers.Adamax(), # adaptive learning rate optimizer
         loss="sparse_categorical_crossentropy", # used for int labels and multi-classification tasks
         metrics=["accuracy"], # monitor the accuracy
     )
@@ -38,24 +78,26 @@ def compile_and_train(model, final_train_ds, final_val_ds):
     #   Early stopping will quit early when the val_accuracy doesnt improve
     early_stop = EarlyStopping(
         monitor="val_accuracy", # what value to monitor
-        patience=5,  # how many epochs to wait before stopping
+        patience=4,  # how many epochs to wait before stopping
         restore_best_weights=True # roll back to the epoch w/ the highest val_acc
         )
     
-    #   LR reducer will divide the LR by 2 whenever it hasnt improved over 3 epochs
+    # LR reducer will divide the LR by 2 whenever it hasnt improved over 3 epochs
+    #   Only necessary for higher epoch counts bc Adamax already dynamically adjusts LR
     reduce_lr = ReduceLROnPlateau(
         monitor="val_accuracy", # what value to monitor
         factor=0.5, # how much to divide LR by
-        patience=3, # how many epochs to wait before dropping
-        min_lr=1e-6 # set minimum LR (.000001)
+        patience=2, # how many epochs to wait before dropping
+        min_lr=1e-7 # set minimum LR (.0000001)
         )
 
     print("\nTraining the Model...")
     model_history = model.fit(
         final_train_ds, # training data
         validation_data=final_val_ds, # validation data
-        epochs=30, # number of epochs to run
+        epochs=10, # number of epochs to run
         callbacks=[early_stop, reduce_lr], # define callbacks (Early stop, LR reducer)
+        class_weight=class_weights, # tell model class distribution
         verbose=1,  # output logs
     )
     return model_history

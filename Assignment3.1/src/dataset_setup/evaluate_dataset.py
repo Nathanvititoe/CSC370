@@ -1,6 +1,5 @@
 import os
 from collections import defaultdict, Counter
-import random
 
 # function to count # of photos for each class
 def dataset_evaluation(dataset_dir, class_map, class_names):
@@ -30,43 +29,32 @@ def dataset_evaluation(dataset_dir, class_map, class_names):
         class_totals[label] += num_images
 
     # Images per aircraft type
-    print("Image count per folder:")
+    print("\n--------Image count per folder--------")
     for folder, count in per_folder_counts.items():
         print(f"  {folder:6}: {count} images")
 
     # images per class type [fighter, bomber, helicopter]
-    print("\nTotal images per class:")
+    print("\n-------Total images per class--------\n")
     for class_id, total in class_totals.items():
         print(f"  {class_names[class_id]:<10}: {total} images")
-    
-    # total images overall
-    print(f"\nTotal images in dataset: {sum(class_totals.values())}")
+    print("\n-------------------------------------")
 
-# function to balance out the class distribution
-def balance_dataset(image_labels_list, class_names):
-    # Group images into separate lists for each class
-    class_groups = defaultdict(list)
-    for img_path, label in image_labels_list:
-        class_groups[label].append((img_path, label))
+# function to determine class weights, allows us to use all data without bias
+def get_class_weights(image_labels_list, num_classes):
+    # count how many images/labels per class
+    label_counts = Counter(label for _, label in image_labels_list)
 
-    # Find the smallest class size
-    smallest_class_size = min(len(images) for images in class_groups.values())
-    print(f"\nSmallest class size is: {smallest_class_size}\n")
+    # toal number of images in dataset
+    total_images = sum(label_counts.values())
 
-    # get "smallest class size" pictures for each class
-    balanced_list = []
-    for class_id, images in class_groups.items():
-        selected_images = random.sample(images, smallest_class_size)
-        balanced_list.extend(selected_images)
+    # get the class weights
+    class_weights = {
+        class_id: total_images / (num_classes * count)
+        for class_id, count in label_counts.items()
+    }
 
-    random.shuffle(balanced_list)  # shuffle to mix up training batches
-
-    # output the new class distribution
-    label_counter = Counter(label for _, label in balanced_list)
-    print("\n--- Balanced Class Distribution ---")
-    for label, count in label_counter.items():
-        class_name = class_names[label] 
-        print(f"{class_name:10}: {count} images")
-    print("-----------------------------------\n")
-
-    return balanced_list
+     # output the class weights
+    print("\n---------- Class Weights ----------\n")
+    for class_id, weight in class_weights.items():
+        print(f"Class {class_id}: {weight:.4f}")
+    print("\n------------------------------------\n")

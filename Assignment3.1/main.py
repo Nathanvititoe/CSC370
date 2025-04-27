@@ -1,8 +1,11 @@
 from src.dataset_setup.setup import setup_dataset
-from src.user_experience.ux import introduction, visualize_history, visualize_predictions
+from src.user_experience.ux import introduction, visualize_history
 from src.model_training.model_builder import build_model, compile_and_train
+import warnings
+warnings.filterwarnings("ignore") # suppress warnings
+
 # dataset directory
-DATASET_DIR = "./small_subset"
+DATASET_DIR = "./aircraft_dataset/small_subset"
 
 # apply integer labels to aircraft types
 CLASS_MAP = {
@@ -19,12 +22,12 @@ CLASS_MAP = {
 }
 
 # apply integer labels to each class of aircraft
-CLASS_NAMES = {0: "Fighter", 1: "Bomber", 2: "Helicopter"}
+CLASS_NAMES = { 0: "Fighter", 1: "Bomber", 2: "Helicopter"}
 
 # set img size, input shape for tensor flow and the size of the batches for training
 img_size = (224, 224)
-input_shape = (224, 224, 3) # tensor shape (224x224) w/ all 3 color channels (RGB)
-batch_size = 64
+input_shape = (224, 224, 3) # tensor shape w/ all 3 color channels (RGB)
+batch_size = 32
 num_classes = len(CLASS_NAMES)
 
 
@@ -34,16 +37,16 @@ def main():
     introduction()
     
     # prepare the dataset
-    print("Preparing the Dataset...")
-    final_train_ds, final_val_ds = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, img_size, batch_size)
+    print("\n\nPreparing the Dataset...\n")
+    final_train_ds, final_val_ds, class_weights = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, img_size, batch_size, num_classes)
 
     # build the model
-    print("\n\nBuilding the Model...")
+    print("\nBuilding the Model...")
     model = build_model(input_shape, num_classes)
 
     # Train the model on the dataset
     print("\nStep 3: Compiling and Training the Model...")
-    model_history = compile_and_train(model, final_train_ds, final_val_ds)
+    model_history = compile_and_train(model, final_train_ds, final_val_ds, class_weights)
     
     # Test the Model on a validation set
     print("\nStep 4: Evaluating Model Performance...")
@@ -58,10 +61,6 @@ def main():
     # graph val loss v. val acc
     print("Visualizing Performance...")
     visualize_history(model_history)
-
-    # visualize the predictions
-    print("Visualizing Predictions...")
-    visualize_predictions(model, final_val_ds, CLASS_NAMES, num_images=12)
 
 
 main()
