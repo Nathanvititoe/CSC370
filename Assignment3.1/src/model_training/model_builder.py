@@ -1,15 +1,14 @@
-from keras import layers, models, optimizers, Sequential # type: ignore
+from keras import layers, models, optimizers # type: ignore
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
-from keras.applications import EfficientNetB0, MobileNetV3Small, MobileNetV3Large, EfficientNetB3, EfficientNetV2B0, EfficientNetV2B1, EfficientNetV2B2, EfficientNetV2B3 # type: ignore
+from keras.applications import EfficientNetB0 # type: ignore
 import tensorflow as tf
 
-# preprocessing methods for different pretrained models
-from keras.applications.mobilenet_v3 import preprocess_input as mobilenet_preprocess # type: ignore
-from keras.applications.efficientnet import preprocess_input as efficientnet_preprocess # type: ignore
+# preprocessing methods for pretrained models 
+    # for some reason the v2 efficient net preprocessing creates better accuracy on v1 models than the v1 preprocessing
 from keras.applications.efficientnet_v2 import preprocess_input as efficientnetv2_preprocess # type: ignore
 
 # function to build the CNN layers and filters
-# use transfer learning to get a more efficient model (base: mobileNet, classification layer: custom)
+# use transfer learning to get a more efficient model (base: efficientNetB0, classification layer: custom)
 def build_model(input_shape, num_classes):
     base_model = EfficientNetB0(
         include_top=False,  # dont use pretrained classification layer
@@ -20,11 +19,8 @@ def build_model(input_shape, num_classes):
    
     base_model.trainable = False  # freeze the pretrained base (dont let it learn)
     
-    inputs = layers.Input(shape=input_shape)
-    # x = mobilenet_preprocess(inputs)  # preprocess for the pretrained model
-    # x = efficientnet_preprocess(inputs)  # preprocess for the pretrained model
+    inputs = layers.Input(shape=input_shape) # define inputs/input shape
     x = efficientnetv2_preprocess(inputs)  # preprocess for the pretrained model
-
     x = base_model(x) # pretrained model w/o top layer
     x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
     x = layers.Dropout(0.5)(x) # drop 50% of neurons to prevent overfitting
@@ -33,23 +29,6 @@ def build_model(input_shape, num_classes):
     model = models.Model(inputs, outputs)
 
     return model
-
-# apply augmentation to training ds
-def augmentData(train_ds):
-    # add some augmentation to images to encourage generalization/prevent overfitting
-    data_augmentation = Sequential([
-        layers.RandomFlip("horizontal_and_vertical"),
-        layers.RandomRotation(0.15),
-        layers.RandomZoom(0.1),
-        layers.RandomContrast(0.15),
-    ], name="data_augmentation")
-
-    augmented_train_ds = train_ds.map(
-        lambda x, y: (data_augmentation(x, training=True), y),
-        num_parallel_calls=tf.data.AUTOTUNE
-    ).prefetch(tf.data.AUTOTUNE)
-
-    return augmented_train_ds
     
 # function to compile and train the model
 def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
@@ -81,7 +60,7 @@ def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
     model_history = model.fit(
         final_train_ds, # training data
         validation_data=final_val_ds, # validation data
-        epochs=30, # number of epochs to run
+        epochs=20, # number of epochs to run
         callbacks=[early_stop, reduce_lr], # define callbacks (Early stop, LR reducer)
         class_weight=class_weights, # tell model class distribution
         verbose=1,  # output logs

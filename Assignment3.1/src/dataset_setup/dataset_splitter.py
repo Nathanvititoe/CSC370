@@ -1,6 +1,4 @@
 from sklearn.model_selection import train_test_split # type: ignore
-from collections import defaultdict
-import random
 
 # function to split the ds into train/validation sets
 def dataset_split(label_list):

@@ -25,7 +25,7 @@ def create_dataset(image_label_list, img_size, batch_size, shuffle=False):
 
     # shuffle the training data and group into batches 
     if shuffle:
-        ds = ds.shuffle(1000)
+        ds = ds.shuffle(7000) # use greater buffer than total images in ds
     ds = ds.batch(batch_size) 
     return ds
 

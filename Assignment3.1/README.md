@@ -13,15 +13,23 @@ https://keras.io/guides/transfer_learning/
 
 
  Tested Different pre-trained model validation accuracy
-    --maybe test mobile net lite for speed/accuracy, only available through tensorflowhub api
+    -- maybe test mobile net lite for speed/accuracy, only available through tensorflowhub api
     -- EfficientNetv1 works better w EfficientNetV2 preprocessing??
     -- EfficientNetv2 works better w EfficientNetv1 preprocesing?? 
 
+    ------------- Final Tests -------------
+    EfficientNetB0(224x224) using EfficientNetV2 preprocessing (batch size: 16)
+        0.5 dropout/avg pooling - 
+    ---------------------------------------
+    
+    
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 16)
         (224x224) : 93.5% accuracy - small_subset/10 epochs
-        (224x224) : 94.2% accuracy - small_subset/20 epochs
-        (224x224) : __% accuracy - small_subset/30 epochs w/ augmentation
-        (96x96)   : __% accuracy- small_subset/10 epochs
+        ***(224x224) : 94.2% accuracy - small_subset/20 epochs***
+        (96x96)   : 90% accuracy- small_subset/10 epochs
+
+    EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 8)
+        (224x224) : 91.5% accuracy - small_subset/30 epochs w/ augmentation
 
     EfficientNetV2B0 using EfficientNetV1 preprocessing (batch size: 16)
         (96x96) : 90% accuracy - small_subset/10 epochs
@@ -52,9 +60,9 @@ https://keras.io/guides/transfer_learning/
         (96x96)   : 86.3% accuracy- small_subset/10 epochs 
 
     EfficientNetV2B3 - Designed for 300x300
-        (300x300) : __% accuracy- small_subset/10 epochs 
-        (224x224) : __% accuracy- small_subset/10 epochs 
-        (96x96)   : __% accuracy- small_subset/10 epochs 
+        (300x300) : 92.5% accuracy- small_subset/10 epochs 
+        (224x224) : 93.3% accuracy- small_subset/10 epochs 
+        (96x96)   : 90.5% accuracy- small_subset/10 epochs 
 
     MobileNetV3Small - Designed for 224x224
         (224x224) : 88% - small_subset/10 epochs
