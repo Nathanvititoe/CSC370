@@ -66,7 +66,8 @@ def main():
     print("\nGetting Model predictions on Prediction dataset...\n")
     pred_list = [(str(p), None) for p in Path(pred_dataset).rglob("*.jpg")]
     pred_loader = create_dataset(pred_list, IMG_SIZE, BATCH_SIZE, NUM_WORKERS, class_weights=None)
-    visualize_predictions(model, pred_loader, pred_list, CLASS_NAMES)
+    all_preds = model.predict(pred_loader)
+    visualize_predictions(all_preds, pred_list, CLASS_NAMES)
     # ------------------------------
     
     # ------------------------------
