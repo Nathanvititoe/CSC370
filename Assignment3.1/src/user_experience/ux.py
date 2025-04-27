@@ -5,7 +5,12 @@ def introduction():
     print("\n--- Aircraft Type Identifier ---")
     print("Given an assortment of aircraft the goal of this machine learning model is to determine whether the aircraft is a Helicopter, Fighter Jet, or Bomber aircraft.")
     print("The model is built using a Convolutional Neural Network (CNN), which automatically learns important features (like shape, wings, and rotors) from the training images.")
-    print("By recognizing these features, the model can predict the correct type of aircraft based on unseen test images.")
+    print("By recognizing these features, the model can predict the correct type of aircraft from a set of unseen test images.")
+    print("The model is trained using a subset of this Kaggle Dataset: \n")
+    print("Military Aircraft Detection Dataset: https://www.kaggle.com/datasets/a2015003713/militaryaircraftdetectiondataset \n")
+    print("This is the subset dataset I've used: \n")
+    print("Military Aircraft Detection Subset: https://www.kaggle.com/datasets/nathanvititoe/military-aircraft-datasetsubset \n")
+
 
 # visualize loss v acc during training and validation 
 def visualize_history(model_history):

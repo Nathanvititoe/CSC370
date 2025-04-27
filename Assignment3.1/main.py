@@ -1,7 +1,7 @@
 from src.dataset_setup.setup import setup_dataset
 from src.user_experience.ux import introduction, visualize_history
 from src.model_training.model_builder import build_model, compile_and_train
-
+from src.model_training.cleanup import cleanup
 # suppress warnings
 import warnings
 import os
@@ -66,7 +66,8 @@ def main():
     print("Visualizing Performance...")
     visualize_history(model_history)
 
-    print("\nExiting...")
+    print("\nCleaning and Exiting...\n")
+    cleanup()
     print("\n----------------------------------------\n")
 
 

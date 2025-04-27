@@ -17,10 +17,20 @@ https://keras.io/guides/transfer_learning/
     -- EfficientNetv1 works better w EfficientNetV2 preprocessing??
     -- EfficientNetv2 works better w EfficientNetv1 preprocesing?? 
 
-    ------------- Final Tests -------------
-    EfficientNetB0(224x224) using EfficientNetV2 preprocessing (batch size: 16)
-        0.5 dropout/avg pooling - 
-    ---------------------------------------
+    -------------------------------- Final Tests -------------------------------
+    EfficientNetB0(224x224) using EfficientNetV2 preprocessing (batch size: 16/10 epochs)
+        0.5 dropout/avg pooling - 93.75% accuracy (slight overfit)
+        0.5 dropout/max pooling - 92.2% accuracy
+
+        0.7 dropout/avg pooling - 93% accuracy (no overfit)
+        0.6 dropout/avg pooling - __% accuracy 
+
+    EfficientNetB0(224x224) using no preprocessing (batch size: 16/20 epochs)
+      Apparently preprocessing is built into the model??
+        0.5 dropout/avg pooling - __% accuracy (slight overfit)
+        0.5 dropout/max pooling - __% accuracy
+        0.7 dropout/avg pooling - __% accuracy
+    ----------------------------------------------------------------------------
     
     
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 16)

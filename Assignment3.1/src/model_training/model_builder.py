@@ -1,11 +1,6 @@
 from keras import layers, models, optimizers # type: ignore
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
 from keras.applications import EfficientNetB0 # type: ignore
-import tensorflow as tf
-
-# preprocessing methods for pretrained models 
-    # for some reason the v2 efficient net preprocessing creates better accuracy on v1 models than the v1 preprocessing
-from keras.applications.efficientnet_v2 import preprocess_input as efficientnetv2_preprocess # type: ignore
 
 # function to build the CNN layers and filters
 # use transfer learning to get a more efficient model (base: efficientNetB0, classification layer: custom)
@@ -20,10 +15,10 @@ def build_model(input_shape, num_classes):
     base_model.trainable = False  # freeze the pretrained base (dont let it learn)
     
     inputs = layers.Input(shape=input_shape) # define inputs/input shape
-    x = efficientnetv2_preprocess(inputs)  # preprocess for the pretrained model
-    x = base_model(x) # pretrained model w/o top layer
+    # x = efficientnetv2_preprocess(inputs)  # preprocess for the pretrained model
+    x = base_model(inputs) # pretrained model w/o top layer
     x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
-    x = layers.Dropout(0.5)(x) # drop 50% of neurons to prevent overfitting
+    x = layers.Dropout(0.6)(x) # drop 60% of neurons to prevent overfitting
     outputs = layers.Dense(num_classes, activation='softmax')(x) # final output layer
 
     model = models.Model(inputs, outputs)
@@ -60,7 +55,7 @@ def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
     model_history = model.fit(
         final_train_ds, # training data
         validation_data=final_val_ds, # validation data
-        epochs=20, # number of epochs to run
+        epochs=10, # number of epochs to run
         callbacks=[early_stop, reduce_lr], # define callbacks (Early stop, LR reducer)
         class_weight=class_weights, # tell model class distribution
         verbose=1,  # output logs
