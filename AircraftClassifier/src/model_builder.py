@@ -6,27 +6,27 @@ import torch.nn as nn  # type: ignore
 
 # pretrained models import
 import torchvision.models as models  # type: ignore
-dropout = 0.349
-lr = 0.000506
-dense_units = 255
-weight_decay = 2.3e-5
+# small subset best values
+    # dropout = 0.349
+    # lr = 0.000506
+    # dense_units = 255
+    # weight_decay = 2.3e-5
 
-# TODO: 
-# test different pretrained models
-# see how pretrain classifier compares to custom
-# test w full dataset using curr best params, and wider net params
-# find model to test w lower res images EfficientNetB0 or MobileNetV2/V3
-# LR reducer? LR Scheduler?
-
+# Load model trained on imageNet
+    # EfficientNetB3, best valAcc was 90% on small_subset
+    # EfficientNetB0, best valAcc was 92% on small_subset
+    # EfficientNetb3 best valACc was 88% on medium subset
+        # dropout - 0.35
+        # lr - 0.0004
+        # dense_units - 354
+        # weight_decay - 3.441e-5     
 # Function to build pretrained base, custom head
 def build_model(num_classes, dropout_rate=0.35, dense_units=256):
-    # Load EfficientNetB0 trained on imageNet
-        # EfficientNetB3, best valAcc was 90% on small_subset
-        # EfficientNetB0, best valAcc was 92% on small_subset
+
 
 
     # - EfficientNet will identify which features are important
-    base_model = models.efficientnet_b0(weights='IMAGENET1K_V1')
+    base_model = models.efficientnet_b3(weights='IMAGENET1K_V1')
     
     pretrained_feature_output = base_model.classifier[1].in_features # get num of features from base_model
     

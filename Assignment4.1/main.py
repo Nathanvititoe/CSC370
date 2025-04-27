@@ -20,7 +20,6 @@ BATCH_SIZE = 16
 NUM_CLASSES = len(CLASS_NAMES)
 NUM_WORKERS = 4
 NUM_EPOCHS = 10
-LEARNING_RATE = 0.0001
 
 # main logic flow control
 def main():
@@ -28,10 +27,13 @@ def main():
     # output description of the program to the user
     introduction()
     # ------------------------------
-
+    
+    print("---------------------------------------------------------")
+    
+    print("\n\nStep 1: Prepare the Datasets...\n")
     # ------------------------------
     # prepare the training dataset
-    print("\n\nPreparing the Training Dataset...\n")
+    print("\n Preparing the Training Dataset...\n")
     train_loader, training_val_loader = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, IMG_SIZE, BATCH_SIZE, NUM_WORKERS)
     # ------------------------------
 
@@ -41,43 +43,52 @@ def main():
     test_list = build_dataset_list(val_dataset, CLASS_MAP)
     test_loader = create_dataset(test_list, IMG_SIZE, BATCH_SIZE, NUM_WORKERS, class_weights=None)
     # ------------------------------
-
+    
+    print("---------------------------------------------------------")
+    
     # ------------------------------
-    print("\nBuilding and Training...")
+    print("\n\nStep 2: Building and Training...")
     # build the model
     model = build_model(NUM_CLASSES, input_shape=(*IMG_SIZE, 3))
 
     # Train the model on the dataset
-    model_history = train_model(model, train_loader, training_val_loader, BATCH_SIZE, NUM_EPOCHS, LEARNING_RATE)
+    model_history = train_model(model, train_loader, training_val_loader, BATCH_SIZE, NUM_EPOCHS)
     # ------------------------------
+    
+    print("---------------------------------------------------------")
     
     # ------------------------------
     # Test the Model on the exclusive validation set
-    print("\nStep 4: Evaluating Model Performance...")
+    print("\n\nStep 3: Evaluate Model Performance...\n")
     loss, accuracy = model.evaluate(test_loader, verbose=1)
-    
     # output test scores
     print(f"\n Final Validation Accuracy: {accuracy * 100:.2f}%")
     print(f" Final Validation Loss: {loss:.4f}")
     # ------------------------------
 
+    print("---------------------------------------------------------")
+
     # ------------------------------
     # get predictions on prediction dataset
-    print("\nGetting Model predictions on Prediction dataset...\n")
+    print("\n\nStep 4: Get Model Predictions on the Prediction Dataset...\n")
     pred_list = [(str(p), None) for p in Path(pred_dataset).rglob("*.jpg")]
     pred_loader = create_dataset(pred_list, IMG_SIZE, BATCH_SIZE, NUM_WORKERS, class_weights=None)
     all_preds = model.predict(pred_loader)
     visualize_predictions(all_preds, pred_list, CLASS_NAMES)
     # ------------------------------
-    
+
+    print("---------------------------------------------------------")    
+
     # ------------------------------
     # graph loss v. acc
-    print("Visualizing Performance...")
+    print("\n\nStep 5: Visualizing Performance...\n")
     visualize_stats(model_history)
     # ------------------------------
-    
+
+    print("---------------------------------------------------------")
+
     # ------------------------------
-    print("Running Final Cleanup...\n")
+    print("\nRunning Final Cleanup...\n")
     cleanup(model, is_final=True)
     # ------------------------------
     

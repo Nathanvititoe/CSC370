@@ -1,14 +1,11 @@
 import optuna # type: ignore
 import torch # type: ignore
 import torch.nn as nn # type: ignore
-import torch.optim as optim # type: ignore
-from torch.utils.data import DataLoader # type: ignore
-from optuna.pruners import MedianPruner # type: ignore
 from skorch import NeuralNetClassifier  # type: ignore 
 from skorch.callbacks import EpochScoring # type: ignore
 from skorch.dataset import ValidSplit # type: ignore
 from torch._dynamo import OptimizedModule  # type: ignore
-from skorch.callbacks import EarlyStopping # type: ignore
+from skorch.callbacks import EarlyStopping, LRScheduler # type: ignore
 import gc
 
 from model_builder import build_model
@@ -24,10 +21,11 @@ warnings.filterwarnings("ignore")
 # Paths and params
 full_dataset_path = "./aircraft_dataset/crop"
 small_subset = "./aircraft_dataset/small_subset"
-data_path = full_dataset_path
+medium_subset = "./aircraft_dataset/medium_subset"
+data_path = medium_subset
 
 # https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/
-img_size = (224, 224)
+img_size = (124, 124)
 
 # ensure it uses gpu acceleration, error otherwise
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -36,10 +34,15 @@ if device != "cuda":
 
 # Run an optuna study to get best hyperparams
 def get_hyperparams(trial):
-    dropout = trial.suggest_float("dropout", 0.345, 0.355) # search for best performing dropout
-    lr = trial.suggest_float("lr",4.5e-4, 5.5e-4, log=True) # search for best performing LR
-    dense_units = trial.suggest_int("dense_units", 240, 270, step=3) # search for best performing dense_units, stepping by 64
-    weight_decay = trial.suggest_float("weight_decay", 1e-5, 5e-5, log=True)
+    # dropout = trial.suggest_float("dropout", 0.345, 0.355) # search for best performing dropout
+    # lr = trial.suggest_float("lr",4.5e-4, 5.5e-4, log=True) # search for best performing LR
+    # dense_units = trial.suggest_int("dense_units", 300, 400, step=3) # search for best performing dense_units, stepping by 64
+    # weight_decay = trial.suggest_float("weight_decay", 1e-5, 5e-5, log=True)
+    dropout = trial.suggest_float("dropout", 0.345, 0.455) # search for best performing dropout
+    lr = trial.suggest_float("lr",3.5e-4, 5e-4, log=True) # search for best performing LR
+    dense_units = trial.suggest_int("dense_units", 350, 450, step=5)
+    weight_decay = trial.suggest_float("weight_decay", 3e-5, 5e-5, log=True)
+
     batch_size = 64
 
     # load prepared datasets
@@ -64,7 +67,7 @@ def get_hyperparams(trial):
         max_epochs=20, # total epochs
         lr=lr, # sample learning rate from Optuna
         device=device, # only train using GPU
-        train_split=ValidSplit(0.2, stratified=True, random_state=42), # split the ds
+        train_split=ValidSplit(0.5, stratified=True, random_state=42), # split the ds
         batch_size=batch_size,
         # speed up dataset loading
         iterator_train__num_workers=8,
@@ -74,6 +77,15 @@ def get_hyperparams(trial):
         # logging settings
         verbose=1 , 
         callbacks=[
+        LRScheduler(
+            policy='ReduceLROnPlateau',
+            monitor='valid_acc',         # monitor validation accuracy
+            factor=0.75,                 # reduce LR by this factor
+            patience=4,                  # wait this many epochs before reducing
+            threshold=1e-6,              # min change to qualify as improvement
+            cooldown=2,                  # wait time before resuming normal operation
+            min_lr=1e-7,                 # don't go lower than this
+        ),
         # quit early if no val_acc improvement
         EarlyStopping(monitor='valid_acc', patience=5),  # stops if no improvement in 3 epochs
         # log training accuracy
@@ -93,10 +105,6 @@ def get_hyperparams(trial):
     # log the trial results
     print(f"Trial {trial.number}: dropout={dropout:.3f}, lr={lr:.5f}, units={dense_units}, val_loss={val_acc:.4f}")
 
-    # prune poorly performing trials (end early)
-    if trial.should_prune():
-        raise optuna.exceptions.TrialPruned()
-
     # clear gpu cache to save vram
     del model, net, dataset, y_labels
     gc.collect()
@@ -108,8 +116,7 @@ def get_hyperparams(trial):
 
 
 # Run the Optuna study
-pruner = MedianPruner(n_warmup_steps=3) # wait 3 steps before pruning
-study = optuna.create_study(direction="maximize", pruner=pruner) # minimize val loss in study 
+study = optuna.create_study(direction="maximize") # minimize val loss in study 
 study.optimize(get_hyperparams, n_trials=10) # run 10 trials
 
 # Output best hyperparams  found by optuna study

@@ -5,7 +5,7 @@ def split_dataset(dataset_list):
     paths, labels = zip(*dataset_list)
     train_paths, val_paths, train_labels, val_labels = train_test_split(
         paths, labels,
-        test_size=0.5,
+        test_size=0.35, # spit 35/65 to stay close to 50/50 while providing more training data
         random_state=42,
         shuffle=True,
         stratify=None

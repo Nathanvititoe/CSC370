@@ -1,5 +1,5 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import matplotlib.pyplot as plt # type: ignore
+import numpy as np # type: ignore
 
 # function to visualize a batch of predictions (trained model, validation dataset, class names/labels, number of images to show in grid)
 def visualize_predictions(model, val_ds, class_names, num_images=9):

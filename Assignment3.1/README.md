@@ -18,31 +18,29 @@ https://keras.io/guides/transfer_learning/
     -- EfficientNetv2 works better w EfficientNetv1 preprocesing?? 
 
     -------------------------------- Final Tests -------------------------------
-    EfficientNetB0(224x224) using EfficientNetV2 preprocessing (batch size: 16/10 epochs)
-        0.5 dropout/avg pooling - 93.75% accuracy (slight overfit)
+    EfficientNetB0(224x224)/10 epochs
+        0.5 dropout/avg pooling - 93.75% accuracy (moderate overfit)
         0.5 dropout/max pooling - 92.2% accuracy
 
+        0.4 dropout/avg pooling - 94% accuracy (moderate overfit)
+        0.6 dropout/avg pooling - 92.8% accuracy (slight overfit)
+        0.65 dropout/avg pooling - 93% accuracy (slight overfit)
+        0.675 dropout/avg pooling - __% accuracy ()
         0.7 dropout/avg pooling - 93% accuracy (no overfit)
-        0.6 dropout/avg pooling - __% accuracy 
-
-    EfficientNetB0(224x224) using no preprocessing (batch size: 16/20 epochs)
-      Apparently preprocessing is built into the model??
-        0.5 dropout/avg pooling - __% accuracy (slight overfit)
-        0.5 dropout/max pooling - __% accuracy
-        0.7 dropout/avg pooling - __% accuracy
     ----------------------------------------------------------------------------
     
     
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 16)
         (224x224) : 93.5% accuracy - small_subset/10 epochs
-        ***(224x224) : 94.2% accuracy - small_subset/20 epochs***
-        (96x96)   : 90% accuracy- small_subset/10 epochs
+        (224x224) : 94.2% accuracy - small_subset/20 epochs***
+        (96x96)   : 90% accuracy - small_subset/10 epochs
 
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 8)
         (224x224) : 91.5% accuracy - small_subset/30 epochs w/ augmentation
 
     EfficientNetV2B0 using EfficientNetV1 preprocessing (batch size: 16)
-        (96x96) : 90% accuracy - small_subset/10 epochs
+        (96x96)   : 90% accuracy - small_subset/10 epochs
+        (224x224) : __% accuracy - small_subset/10 epochs
 
     EfficientNetB0 - Designed for 224x224
         (224x224) : 93.5% accuracy- small_subset/10 epochs 

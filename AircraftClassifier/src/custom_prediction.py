@@ -1,8 +1,8 @@
-import tensorflow as tf # type: ignore
+import torch # type: ignore
+import torchvision.transforms as transforms # type: ignore
+from PIL import Image # type: ignore
 import numpy as np # type: ignore
-import tensorflow.keras.preprocessing import image # type: ignore
 
-# This function loads an image file and uses the trained model to predict its class
 def predict_image(model, class_names, img_size):
     print("\nWould you like to classify a new image? (yes/no)")
     user_response = input("Enter 'yes' to continue: ").strip().lower()
@@ -11,25 +11,34 @@ def predict_image(model, class_names, img_size):
         print("Exiting...")
         return
 
-    # prompt the user for an image
     img_path = input("Enter the full path to the aircraft image (.jpg or .png): ").strip()
 
     try:
-        # load the user's image and preprocess
-        img = image.load_img(img_path, target_size=img_size) # load and resize
-        img_array = image.img_to_array(img) # convert img to arr for tensorflow
-        
-        # simulate a batch size of one and normalize pixel values
-        img_array = np.expand_dims(img_array, axis=0) / 255.0 
+        # Load and preprocess the image
+        img = Image.open(img_path).convert("RGB")
+        transform = transforms.Compose([
+            transforms.Resize(img_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ])
 
-        # have the model predict
-        predictions = model.predict(img_array) 
-        predicted_class = class_names[np.argmax(predictions)] # get the prediction as a class name
+        img_tensor = transform(img).unsqueeze(0)  # Add batch dimension
 
-        # output prediction result
+        # Ensure model is in eval mode and on the correct device
+        model.eval()
+        device = next(model.parameters()).device
+        img_tensor = img_tensor.to(device)
+
+        # Get prediction
+        with torch.no_grad():
+            output = model(img_tensor)
+            predicted_idx = torch.argmax(output, dim=1).item()
+            predicted_class = class_names[predicted_idx]
+
         print("---------------------------------")
         print(f"\nThis aircraft is a/an: {predicted_class}")
         print("----------------------------------")
+
     except Exception as e:
         print(f"Error: {e}")
         print("Make sure the file path is correct and the image is valid.")

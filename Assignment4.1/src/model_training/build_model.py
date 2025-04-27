@@ -52,7 +52,7 @@ def build_model(NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
     return model
 
 # function to train/fit the model
-def train_model(model, train_loader, training_val_loader, NUM_EPOCHS):
+def train_model(model, train_loader, training_val_loader):
     # Early stopping (stop model training if val acc isnt improving)
     early_stop = EarlyStopping(
         monitor="valid_accuracy",  # what to monitor

@@ -30,7 +30,9 @@ AircraftClassifier/trainedModels/*
 !AircraftClassifier/Visualizations/.gitkeep
 
 # Assignment 3.1
-Assignment3.1/small_subset/*
-!Assignment3.1/small_subset/.gitkeep
+Assignment3.1/aircraft_dataset/*
+!Assignment3.1/aircraft_dataset/.gitkeep
 
-
+# Assignment 4.1
+Assignment4.1/dataset/*
+!Assignment4.1/dataset/.gitkeep
