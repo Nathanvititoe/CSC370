@@ -1,8 +1,12 @@
 from src.dataset_setup.setup import setup_dataset
 from src.user_experience.ux import introduction, visualize_history
-from src.model_training.model_builder import build_model, compile_and_train
+from src.model_training.model_builder import build_model, compile_and_train, augmentData
+
+# suppress warnings
 import warnings
-warnings.filterwarnings("ignore") # suppress warnings
+import os
+warnings.filterwarnings("ignore") 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # dataset directory
 DATASET_DIR = "./aircraft_dataset/small_subset"
@@ -27,7 +31,7 @@ CLASS_NAMES = { 0: "Fighter", 1: "Bomber", 2: "Helicopter"}
 # set img size, input shape for tensor flow and the size of the batches for training
 img_size = (224, 224)
 input_shape = (224, 224, 3) # tensor shape w/ all 3 color channels (RGB)
-batch_size = 64
+batch_size = 8
 num_classes = len(CLASS_NAMES)
 
 
@@ -39,6 +43,7 @@ def main():
     # prepare the dataset
     print("\n\nPreparing the Dataset...\n")
     final_train_ds, final_val_ds, class_weights = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, img_size, batch_size, num_classes)
+    final_train_ds = augmentData(final_train_ds)
 
     # build the model
     print("\nBuilding the Model...")

@@ -14,49 +14,58 @@ https://keras.io/guides/transfer_learning/
 
  Tested Different pre-trained model validation accuracy
     --maybe test mobile net lite for speed/accuracy, only available through tensorflowhub api
+    -- EfficientNetv1 works better w EfficientNetV2 preprocessing??
+    -- EfficientNetv2 works better w EfficientNetv1 preprocesing?? 
 
-     **EfficientNetB0 - Designed for 224x224
-        (224x224) : 93.5% accuracy- small_subset/10 epochs
+    EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 16)
+        (224x224) : 93.5% accuracy - small_subset/10 epochs
+        (224x224) : 94.2% accuracy - small_subset/20 epochs
+        (224x224) : __% accuracy - small_subset/30 epochs w/ augmentation
+        (96x96)   : __% accuracy- small_subset/10 epochs
+
+    EfficientNetV2B0 using EfficientNetV1 preprocessing (batch size: 16)
+        (96x96) : 90% accuracy - small_subset/10 epochs
+
+    EfficientNetB0 - Designed for 224x224
+        (224x224) : 93.5% accuracy- small_subset/10 epochs 
+        (224x224) : 91.5% accuracy- small_subset/10 epochs(RETESTED)
         (96x96)   : 85.4% accuracy- small_subset/10 epochs
+        (96x96)   : 89.5% accuracy- small_subset/10 epochs(RETESTED)
 
-     *EfficientNetB3 - Designed for 300x300
+    EfficientNetB3 - Designed for 300x300
         (300x300) : 91.2% accuracy- small_subset/10 epochs
-        (224x224) : 92.5% accuracy- small_subset/20 epochs
         (224x224) : 91.3% accuracy- small_subset/10 epochs
         (96x96)   : 86% accuracy- small_subset/10 epochs   
     
-    *EfficientNetV2B0 - Designed for 224x224
-        (224x224) : 92% accuracy- small_subset/10 epochs
-        (96x96)   : 86.9% accuracy- small_subset/10 epochs 
+    EfficientNetV2B0 - Designed for 224x224
+        (224x224) : 91.3% accuracy- small_subset/10 epochs
+        (96x96)   : 86.9% accuracy- small_subset/10 epochs
 
     EfficientNetV2B1 - Designed for 240x240
-        (240x240) : 91% accuracy- small_subset/10 epochs
-        (224x224) : 91% accuracy- small_subset/10 epochs
-        (224x224) : 91.2% accuracy- small_subset/20 epochs
-        (96x96)   : 87.5% accuracy- small_subset/10 epochs 
-
-    *EfficientNetV2B2 - Designed for 260x260
-        (260x260) : __% accuracy- small_subset/10 epochs
-        (224x224) : 92% accuracy- small_subset/10 epochs
+        (240x240) : 91% accuracy- small_subset/10 epochs 
+        (224x224) : 90% accuracy- small_subset/10 epochs
+        (96x96)   : 87.5% accuracy- small_subset/10 epochs  
+ 
+    EfficientNetV2B2 - Designed for 260x260
+        (260x260) : 90.2% accuracy- small_subset/10 epochs 
+        (224x224) : 90.5% accuracy- small_subset/10 epochs 
         (96x96)   : 86.3% accuracy- small_subset/10 epochs 
 
     EfficientNetV2B3 - Designed for 300x300
-    (300x300) : __% accuracy- small_subset/10 epochs
-    (224x224) : __% accuracy- small_subset/10 epochs
-    (96x96)   : __% accuracy- small_subset/10 epochs 
+        (300x300) : __% accuracy- small_subset/10 epochs 
+        (224x224) : __% accuracy- small_subset/10 epochs 
+        (96x96)   : __% accuracy- small_subset/10 epochs 
 
     MobileNetV3Small - Designed for 224x224
         (224x224) : 88% - small_subset/10 epochs
-        (224x224) : 88.8% - small_subset/20 epochs
         (96x96)   : 83.6% accuracy - small_subset/10 epochs
-        (96x96)   : 84.6% accuracy - small_subset/30 epochs
 
     MobileNetV3Large - Designed for 224x224
         (224x224) : 91% accuracy - small_subset/10 epochs
         (96x96)   : 87.3% accuracy - small_subset/10 epochs
     
     MobileNetV2 - Designed for 224x224
-        (224x224) : __% - small_subset/10 epochs
+        (224x224) : 62.4% accuracy - small_subset/10 epochs
         (96x96)   : 60% accuracy - small_subset/10 epochs
 
     NASNetMobile - Designed for 224x224
