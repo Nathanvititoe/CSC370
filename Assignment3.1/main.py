@@ -27,7 +27,7 @@ CLASS_NAMES = { 0: "Fighter", 1: "Bomber", 2: "Helicopter"}
 # set img size, input shape for tensor flow and the size of the batches for training
 img_size = (224, 224)
 input_shape = (224, 224, 3) # tensor shape w/ all 3 color channels (RGB)
-batch_size = 32
+batch_size = 64
 num_classes = len(CLASS_NAMES)
 
 

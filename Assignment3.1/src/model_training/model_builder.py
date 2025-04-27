@@ -1,37 +1,10 @@
 from keras import layers, models, optimizers, Sequential # type: ignore
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
-from keras.applications import EfficientNetB0,MobileNetV3Small,MobileNetV3Large, EfficientNetB3, EfficientNetV2B0, EfficientNetV2B1, EfficientNetV2B2# type: ignore
+from keras.applications import EfficientNetB0, MobileNetV2, MobileNetV3Small, MobileNetV3Large, EfficientNetB3, EfficientNetV2B0, EfficientNetV2B1, EfficientNetV2B2 # type: ignore
 
 # preprocessing methods for different pretrained models
 from keras.applications.mobilenet_v3 import preprocess_input as mobilenet_preprocess # type: ignore
 from keras.applications.efficientnet import preprocess_input as efficientnet_preprocess # type: ignore
-# Diff models validation accuracy
-# provide more epochs for larger models to converge
-
-    # EfficientNetB0(224x224) : 93.5% accuracy- small_subset/10 epochs
-    # EfficientNetB0(96x96) : 85.4% accuracy- small_subset/10 epochs
-
-    # more epochs? 
-    # EfficientNetB3(224x224) : 91.3% accuracy- small_subset/10 epochs
-    # EfficientNetB3(96x96) : 86% accuracy- small_subset/10 epochs   
-    
-    # EfficientNetV2B0(224x224) : __% accuracy- small_subset/10 epochs
-    # EfficientNetV2B0(96x96) : 86.9% accuracy- small_subset/10 epochs 
-
-    # EfficientNetV2B1(224x224) : __% accuracy- small_subset/10 epochs
-    # EfficientNetV2B1(96x96) : 87.5% accuracy- small_subset/10 epochs 
-
-    # EfficientNetV2B2(224x224) : __% accuracy- small_subset/10 epochs
-    # EfficientNetV2B2(96x96) : 86.3% accuracy- small_subset/10 epochs 
-
-    # MobileNetV3Small(224x224) : 88% - small_subset/10 epochs
-    # MobileNetV3Small(96x96) : 83.6% accuracy - small_subset/10 epochs
-    # MobileNetV3Small(96x96) : 84.6% accuracy - small_subset/30 epochs
-
-    # more epochs? 
-    # MobileNetV3Large(224x224) : 91% accuracy - small_subset/10 epochs
-    # MobileNetV3Large(96x96) : 87.3% accuracy - small_subset/10 epochs
-
 
 # function to build the CNN layers and filters
 # use transfer learning to get a more efficient model (base: mobileNet, classification layer: custom)
@@ -44,7 +17,7 @@ def build_model(input_shape, num_classes):
         layers.RandomContrast(0.1), # randomly adjust contrast by +/- 10%
     ], name="data_augmentation")
 
-    base_model = EfficientNetV2B2(
+    base_model = MobileNetV2(
         include_top=False,  # dont use pretrained classification layer
         input_shape=input_shape, # use our defined input shape
         pooling='avg', # global avg pooling to flatten output
@@ -55,7 +28,8 @@ def build_model(input_shape, num_classes):
     
     inputs = layers.Input(shape=input_shape)
     x = data_augmentation(inputs)
-    x = efficientnet_preprocess(x)  # preprocess for the pretrained model
+    x = mobilenet_preprocess(x)  # preprocess for the pretrained model
+    # x = efficientnet_preprocess(x)  # preprocess for the pretrained model
     x = base_model(x, training=False) # pretrained model w/o top layer
     x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
     x = layers.Dropout(0.4)(x) # drop 40% of neurons to prevent overfitting
@@ -91,7 +65,7 @@ def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
         min_lr=1e-7 # set minimum LR (.0000001)
         )
 
-    print("\nTraining the Model...")
+    print("\nTraining the Model...\n")
     model_history = model.fit(
         final_train_ds, # training data
         validation_data=final_val_ds, # validation data
