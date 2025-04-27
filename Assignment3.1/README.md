@@ -1,4 +1,4 @@
-Used a subset of https://www.kaggle.com/datasets/a2015003713/militaryaircraftdetectiondataset 
+The dataset I used is located here : https://www.kaggle.com/datasets/nathanvititoe/military-aircraft-datasetsubset/data
 
 Used a Convolutional Neural Network to identify aircraft types, and classify the images: 
 https://www.ibm.com/think/topics/convolutional-neural-networks

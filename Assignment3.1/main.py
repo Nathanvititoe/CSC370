@@ -62,5 +62,8 @@ def main():
     print("Visualizing Performance...")
     visualize_history(model_history)
 
+    print("\nExiting...")
+    print("\n----------------------------------------\n")
+
 
 main()

@@ -1,27 +1,28 @@
 from keras import layers, models, optimizers, Sequential # type: ignore
 from keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
-from keras.applications import EfficientNetB0,MobileNetV3Small,MobileNetV3Large, EfficientNetB3# type: ignore
+from keras.applications import EfficientNetB0,MobileNetV3Small,MobileNetV3Large, EfficientNetB3, EfficientNetV2B0, EfficientNetV2B1, EfficientNetV2B2# type: ignore
 
 # preprocessing methods for different pretrained models
 from keras.applications.mobilenet_v3 import preprocess_input as mobilenet_preprocess # type: ignore
 from keras.applications.efficientnet import preprocess_input as efficientnet_preprocess # type: ignore
 # Diff models validation accuracy
+# provide more epochs for larger models to converge
 
     # EfficientNetB0(224x224) : 93.5% accuracy- small_subset/10 epochs
     # EfficientNetB0(96x96) : 85.4% accuracy- small_subset/10 epochs
 
     # more epochs? 
-    # EfficientNetB3(224x224) : __% accuracy- small_subset/10 epochs
+    # EfficientNetB3(224x224) : 91.3% accuracy- small_subset/10 epochs
     # EfficientNetB3(96x96) : 86% accuracy- small_subset/10 epochs   
     
     # EfficientNetV2B0(224x224) : __% accuracy- small_subset/10 epochs
-    # EfficientNetV2B0(96x96) : __% accuracy- small_subset/10 epochs 
+    # EfficientNetV2B0(96x96) : 86.9% accuracy- small_subset/10 epochs 
 
     # EfficientNetV2B1(224x224) : __% accuracy- small_subset/10 epochs
-    # EfficientNetV2B1(96x96) : __% accuracy- small_subset/10 epochs 
+    # EfficientNetV2B1(96x96) : 87.5% accuracy- small_subset/10 epochs 
 
     # EfficientNetV2B2(224x224) : __% accuracy- small_subset/10 epochs
-    # EfficientNetV2B2(96x96) : __% accuracy- small_subset/10 epochs 
+    # EfficientNetV2B2(96x96) : 86.3% accuracy- small_subset/10 epochs 
 
     # MobileNetV3Small(224x224) : 88% - small_subset/10 epochs
     # MobileNetV3Small(96x96) : 83.6% accuracy - small_subset/10 epochs
@@ -35,27 +36,26 @@ from keras.applications.efficientnet import preprocess_input as efficientnet_pre
 # function to build the CNN layers and filters
 # use transfer learning to get a more efficient model (base: mobileNet, classification layer: custom)
 def build_model(input_shape, num_classes):
-    # Define a Data Augmentation pipeline
+    # add some augmentation to images to encourage generalization/prevent overfitting
     data_augmentation = Sequential([
-        layers.RandomFlip("horizontal"),          # Flip images horizontally
-        layers.RandomRotation(0.1),                # Rotate randomly by ±10%
-        layers.RandomZoom(0.1),                    # Zoom in/out
-        layers.RandomContrast(0.1),                # Adjust contrast
-        layers.RandomTranslation(0.1, 0.1),        # Shift images around
+        layers.RandomFlip("horizontal"), # randomly horizontal flip
+        layers.RandomRotation(0.1),# Rotate randomly +/- 10%
+        layers.RandomZoom(0.1), # Zoom in/out randomly by +/- 10%
+        layers.RandomContrast(0.1), # randomly adjust contrast by +/- 10%
     ], name="data_augmentation")
 
-    base_model = EfficientNetB3(
-        include_top=False,  # dont use mobileNet classification layer
+    base_model = EfficientNetV2B2(
+        include_top=False,  # dont use pretrained classification layer
         input_shape=input_shape, # use our defined input shape
         pooling='avg', # global avg pooling to flatten output
-        weights='imagenet'  # use mobileNet weights from training on imagenet
+        weights='imagenet'  # use weights from training on imagenet
     )
    
     base_model.trainable = False  # freeze the pretrained base (dont let it learn)
     
     inputs = layers.Input(shape=input_shape)
     x = data_augmentation(inputs)
-    x = efficientnet_preprocess(x)  # preprocess for MobileNet
+    x = efficientnet_preprocess(x)  # preprocess for the pretrained model
     x = base_model(x, training=False) # pretrained model w/o top layer
     x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
     x = layers.Dropout(0.4)(x) # drop 40% of neurons to prevent overfitting

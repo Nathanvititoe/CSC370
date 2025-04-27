@@ -1,6 +1,6 @@
 from src.dataset_setup.evaluate_dataset import dataset_evaluation, get_class_weights
 from src.dataset_setup.dataset_loader import build_dataset_list, get_datasets
-from src.dataset_setup.dataset_splitter import dataset_split, balanced_split
+from src.dataset_setup.dataset_splitter import dataset_split
 from collections import Counter
 
 # logic center for dataset preparation
