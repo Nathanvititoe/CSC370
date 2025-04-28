@@ -22,7 +22,7 @@
     -- EfficientNetv2 works better w EfficientNetv1 preprocessing?? 
 
 ### Dialing in the hyperparameters for EfficientNetB0
-    -------------------------------- **Final Tests** -------------------------------
+    ** -------------------------------- Final Tests ------------------------------- **
     EfficientNetB0(224x224)/10 epochs
         0.5 dropout/avg pooling - 93.75% accuracy (moderate overfit)
         0.5 dropout/max pooling - 92.2% accuracy
@@ -52,7 +52,7 @@
     
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 16)
         (224x224) : 93.5% accuracy - small_subset/10 epochs
-        **(224x224) : 94.2% accuracy - small_subset/20 epochs**
+        ** (224x224) : 94.2% accuracy - small_subset/20 epochs **
         (96x96)   : 90% accuracy - small_subset/10 epochs
 
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 8)
