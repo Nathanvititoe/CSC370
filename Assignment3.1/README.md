@@ -1,4 +1,4 @@
-# Screenshots are locatied in Assignment3.1/Screenshots folder
+# Screenshots are located in Assignment3.1/Screenshots folder
 
 ## **The dataset I used is located here :**
  [Military Aircraft Dataset](https://www.kaggle.com/datasets/nathanvititoe/military-aircraft-datasetsubset/data)
