@@ -17,7 +17,7 @@ def build_model(input_shape, num_classes):
     inputs = layers.Input(shape=input_shape) # define inputs/input shape
     x = base_model(inputs) # pretrained model w/o top layer
     x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
-    # x = layers.Dropout(0.1)(x) # drop 20% of neurons to prevent overfitting
+    # x = layers.Dropout(0.1)(x) # drop 10% of neurons to prevent overfitting
     outputs = layers.Dense(num_classes, activation='softmax')(x) # final output layer
 
     model = models.Model(inputs, outputs)
@@ -26,7 +26,7 @@ def build_model(input_shape, num_classes):
     
 # function to compile and train the model
 def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
-    print("\nCompiling the Model...")
+    print("\n    Compiling the Model...")
     model.compile(
         optimizer=optimizers.Adamax(), # adaptive learning rate optimizer
         loss="sparse_categorical_crossentropy", # used for int labels and multi-classification tasks
@@ -50,7 +50,7 @@ def compile_and_train(model, final_train_ds, final_val_ds, class_weights):
         min_lr=1e-7 # set minimum LR (.0000001)
         )
 
-    print("\nTraining the Model...\n")
+    print("\n    Training the Model...\n")
     model_history = model.fit(
         final_train_ds, # training data
         validation_data=final_val_ds, # validation data
