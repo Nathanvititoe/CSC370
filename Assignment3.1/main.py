@@ -29,8 +29,8 @@ CLASS_MAP = {
 CLASS_NAMES = { 0: "Fighter", 1: "Bomber", 2: "Helicopter"}
 
 # set img size, input shape for tensor flow and the size of the batches for training
-img_size = (96, 96)
-input_shape = (96, 96, 3) # tensor shape w/ all 3 color channels (RGB)
+img_size = (224, 224)
+input_shape = (224, 224, 3) # tensor shape w/ all 3 color channels (RGB)
 batch_size = 16
 num_classes = len(CLASS_NAMES)
 
@@ -45,7 +45,7 @@ def main():
     final_train_ds, final_val_ds, class_weights = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, img_size, batch_size, num_classes)
 
     # build the model
-    print("\n Step 2: Building the Model...")
+    print("\nStep 2: Building the Model...")
     model = build_model(input_shape, num_classes)
 
     # Train the model on the dataset
@@ -57,7 +57,7 @@ def main():
     loss, accuracy = model.evaluate(final_val_ds, verbose=1)
     
     # output test scores
-    print(f"\n Final Validation Accuracy: {accuracy * 100:.2f}%")
+    print(f"\nFinal Validation Accuracy: {accuracy * 100:.2f}%")
     print(f" Final Validation Loss: {loss:.4f}")
     
     # graph val loss v. val acc

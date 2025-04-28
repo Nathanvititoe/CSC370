@@ -3,7 +3,7 @@ from keras.callbacks import EarlyStopping, ReduceLROnPlateau # type: ignore
 from keras.applications import EfficientNetB0 # type: ignore
 
 # function to build the CNN layers and filters
-# use transfer learning to get a more efficient model (base: efficientNetB0, classification layer: custom)
+    # use transfer learning to get a more efficient model (base: efficientNetB0, classification layer: custom)
 def build_model(input_shape, num_classes):
     base_model = EfficientNetB0(
         include_top=False,  # dont use pretrained classification layer
@@ -15,10 +15,9 @@ def build_model(input_shape, num_classes):
     base_model.trainable = False  # freeze the pretrained base (dont let it learn)
     
     inputs = layers.Input(shape=input_shape) # define inputs/input shape
-    # x = efficientnetv2_preprocess(inputs)  # preprocess for the pretrained model
     x = base_model(inputs) # pretrained model w/o top layer
     x = layers.Dense(128, activation='relu')(x) # dense layer to learn specific features for this goal
-    x = layers.Dropout(0.3)(x) # drop 30% of neurons to prevent overfitting
+    # x = layers.Dropout(0.1)(x) # drop 20% of neurons to prevent overfitting
     outputs = layers.Dense(num_classes, activation='softmax')(x) # final output layer
 
     model = models.Model(inputs, outputs)
