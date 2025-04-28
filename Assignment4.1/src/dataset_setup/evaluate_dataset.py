@@ -29,13 +29,13 @@ def dataset_evaluation(dataset_dir, class_map, class_names):
         class_totals[label] += num_images
 
     # Images per aircraft type
-    print("\n--------Image count per folder--------")
+    print("\n--------Image count per folder--------\n")
     for folder, count in per_folder_counts.items():
         print(f"  {folder:6}: {count} images")
 
     # images per class type [fighter, bomber, helicopter]
-    print("\n-------Total images per class--------\n")
+    print("\n\n-------Total images per class--------\n")
     for class_id, total in class_totals.items():
         print(f"  {class_names[class_id]:<10}: {total} images")
-    print("\n-------------------------------------")
+    print("-------------------------------------")
 

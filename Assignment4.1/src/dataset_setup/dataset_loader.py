@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
+from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
 from collections import Counter
@@ -45,42 +45,23 @@ def build_dataset_list(dataset_dir, class_map):
         for img_file in os.listdir(folder_path):
             dataset.append((str(folder_path / img_file), label))
 
-        print(f"\nLoaded {len(dataset)} images.") # output total image count
+    print(f"\nLoaded {len(dataset)} images.") # output total image count
     return dataset
 
-# function to create pytorch dataloaders from list of image path's and their labels
-def create_dataset(image_label_list, img_size, batch_size, num_workers, class_weights):
+
+def create_dataset(image_label_list, img_size):
     # separate the list into individual lists of paths and labels
     paths, labels = zip(*image_label_list)
 
     # Apply transformations as preprocessing
     transform = transforms.Compose([
-        transforms.Resize(img_size),  # resize all images to defined img_size
-        transforms.ToTensor(),        # convert to pytorch tensor
+        transforms.Resize(img_size),
+        transforms.ToTensor(),
     ])
 
     # init the dataset with data
     ds = ImageDataset(paths, labels, transform)
-    
-    sampler = None
-    if class_weights:
-        # generate weights for each sample
-        sample_weights = [class_weights[label] for _, label in image_label_list]
-        
-        # create weighted sampler
-        sampler = WeightedRandomSampler(
-            sample_weights, num_samples=len(sample_weights), replacement=True
-        )
-
-    # create pytorch dataloader
-    loader = DataLoader(
-        ds,
-        batch_size=batch_size,  # images per batch
-        sampler=sampler, # apply weights for class distribution
-        num_workers=num_workers,  # how many cpu processes to use
-        pin_memory=True          # use cuda pin memory
-    )
-    return loader  # return the created dataLoader
+    return ds 
 
 # function to determine class weights, allows us to use all data without bias
 def get_class_weights(image_labels_list, num_classes):
@@ -103,24 +84,3 @@ def get_class_weights(image_labels_list, num_classes):
     print("\n------------------------------------\n")
     
     return class_weights
-
-# function to return the pytorch dataloader objects 
-def get_dataloaders(train_list, val_list, num_classes, img_size, batch_size, num_workers):
-    # get class weights for training set
-    train_weights = get_class_weights(train_list, num_classes)
-
-    # create training dataset w/ shuffled data and weighted samples
-    train_loader = create_dataset(
-        train_list, img_size, batch_size,
-        num_workers=num_workers,
-        class_weights=train_weights
-    )
-
-    # create validation dataset with no shuffling or weighted samples
-    val_loader = create_dataset(
-        val_list, img_size, batch_size,
-        num_workers=num_workers,
-        class_weights=None
-    )
-
-    return train_loader, val_loader # return datasets
