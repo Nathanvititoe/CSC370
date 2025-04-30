@@ -18,36 +18,27 @@ MODEL_MAP = {
 
 # function to toggle pretrained model base for testing
 def get_model(MODEL_VERSION):
-    # if invalid model version, throw err
     if MODEL_VERSION not in MODEL_MAP:
         raise ValueError(f"Unknown MODEL_VERSION '{MODEL_VERSION}'")
 
-    # get model function and weights
-    model_fn, weights, kwargs = MODEL_MAP[MODEL_VERSION]
-    model = model_fn(weights=weights, **kwargs)
+    model_fn, weights = MODEL_MAP[MODEL_VERSION]
+    model = model_fn(weights=weights)
 
-    # freeze the model
+    # freeze the pretrained model (dont let it train)
     for param in model.parameters():
         param.requires_grad = False
 
-    # Extract output features before removing top layer
-    if hasattr(model, 'classifier'):
-        in_features = get_in_features(model.classifier)
-        model.classifier = nn.Identity()
-    elif hasattr(model, 'fc'):
-        in_features = get_in_features(model.fc)
-        model.fc = nn.Identity()
-    elif hasattr(model, 'heads'):
-        in_features = get_in_features(model.heads)
-        model.heads = nn.Identity()
-    else:
-        raise AttributeError(f"Cannot strip top layer: unknown model structure for '{MODEL_VERSION}'")
-        
+    # get number of output features
+    in_features = get_in_features(model.classifier)
+
+    # remove the output/classifier layer from pretrained model
+    model.classifier = nn.Identity()
+
     return model, in_features
 
 # get the output features from the final layer of pretrained model
 def get_in_features(layer):
-    for m in layer.modules():
-        if isinstance(m, nn.Linear):
-            return m.in_features
-    raise ValueError("No Linear layer found in classification head.")
+    for module in layer.modules():
+        # if theres a linear layer
+        if isinstance(module, nn.Linear):
+            return module.in_features # return the features

@@ -13,16 +13,21 @@ class Model(nn.Module):
     # class constructor
     def __init__(self, num_classes):
         super(Model, self).__init__()
-        # load pretrained model as base
-        #   cn_t, cn_s, cn_b (tiny, small, base) 
+        # load pretrained model as base -- cn_t, cn_s, cn_b (tiny, small, base) 
         # final choice: ConvNeXt_Tiny, smallest, fastest but similar accuracy to larger, slower models
         self.model, in_features = get_model("cn_t") # get the pretrained model 
 
+        # only unfreeze very top layers of pretrained model
+        for name, param in self.model.named_parameters():
+            if any(layer in name for layer in ["stages.3", "stages.2", "head"]):  
+                param.requires_grad = True
+        
         self.pool = nn.AdaptiveAvgPool2d((1, 1)) # use gap to reduce dimensions
         self.flatten = nn.Flatten() # flatten pool to 1D Vector
 
         self.classifier = nn.Sequential(
             nn.Linear(in_features, 128), # convert flatten into 128 hidden layer
+            nn.Dropout(0.1), # randomly drop 10% of neurons
             nn.BatchNorm1d(128), # normalize
             nn.ReLU(), # apply relu activation 
             nn.Linear(128, num_classes), # get output layer as num_classes features
@@ -36,7 +41,7 @@ class Model(nn.Module):
         x = self.classifier(x) # use custom classifier layer
         return x
 
-# build an instance of our model
+# build an instance of the model
 def build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
 
     # steps = dataset_length / batch_size
@@ -48,7 +53,8 @@ def build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
         module__num_classes=NUM_CLASSES, # number of classifiable classes 
         max_epochs=NUM_EPOCHS, # number of epochs
         optimizer=optim.Adamax, # adamax optimizer, dynamic LR updates
-        criterion=nn.CrossEntropyLoss, # use cross entropy for categorical classification labels
+        optimizer__weight_decay=1e-4,
+        criterion=nn.CrossEntropyLoss(label_smoothing=0.1), # use cross entropy for categorical classification labels
         train_split=ValidSplit(0.5, stratified=True, random_state=42),
         iterator_train__batch_size=BATCH_SIZE, # set batch sizes
         iterator_valid__batch_size=BATCH_SIZE, # set batch sizes
@@ -62,7 +68,7 @@ def build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
         # optimizes LR 
         LRScheduler(
         policy=OneCycleLR, # use OneCycleLr
-        max_lr=0.01, # starting lr
+        max_lr=0.01, # max lr when increasing
         steps_per_epoch=steps_per_epoch, # steps to take each epoch
         epochs=NUM_EPOCHS, # num of epochs
         pct_start=0.3,  # % of steps to spend increasing LR
@@ -71,7 +77,7 @@ def build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
         ),
 
         # stops if no improvement in 5 epochs
-        EarlyStopping(monitor='valid_acc', patience=3, threshold=1e-5, lower_is_better=False, load_best=True),
+        EarlyStopping(monitor='valid_acc', patience=4, threshold=1e-5, lower_is_better=False, load_best=True),
 
         # cleanup for resource optimization
         EpochCleanupCallback()
@@ -82,12 +88,10 @@ def build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
 
 # function to train/fit the model
 def train_model(classifier, dataset):
-    y_labels = torch.tensor(dataset.labels)
+    y_labels = torch.tensor(dataset.labels) # get labels
 
-    classifier.fit(
-        dataset,  # dataset to train/fit with
-        y=y_labels # pass labels for training
-    )
+    # train model, pass ds and labels
+    classifier.fit(dataset, y=y_labels)
 
     return classifier
 

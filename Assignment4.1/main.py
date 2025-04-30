@@ -22,10 +22,10 @@ pred_dataset = './dataset/seg_pred/seg_pred'
 DATASET_DIR = train_dataset
 CLASS_NAMES = [d.name for d in Path(DATASET_DIR).iterdir() if d.is_dir()] # get class names from subfolder headings
 CLASS_MAP = {name: index for index, name in enumerate(sorted(CLASS_NAMES))}
-IMG_SIZE = (224, 224) # image resolution
+IMG_SIZE = (224,224) # image resolution
 BATCH_SIZE = 256 # num of images per sample
 NUM_CLASSES = len(CLASS_NAMES) # total number of classes
-NUM_EPOCHS = 15 # num of epochs to run
+NUM_EPOCHS = 50 # num of epochs to run
 
 # force model to use GPU or throw error
 DEVICE = 'cuda' if torch.cuda.is_available() else None

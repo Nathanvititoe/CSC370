@@ -63,13 +63,19 @@ def get_transforms(IMG_SIZE, DEVICE):
     # training ds transforms
     train_transform = transforms.Compose([
     # augmentation
-    transforms.RandomResizedCrop(IMG_SIZE),  # add random resizing
-    transforms.RandomHorizontalFlip(), # randomly flip images horizontally
-    transforms.RandomRotation(4), # rotate +/- 2 degrees randomly
-    transforms.ColorJitter(brightness=0.1, contrast=0.2), # randomly change brightness/contrast
+    transforms.Resize(IMG_SIZE), # resize img properly
+    transforms.RandomHorizontalFlip(0.5), # randomly flip images horizontally
+    transforms.RandomRotation(2), # rotate +/- 2 degrees randomly
+    transforms.RandomApply([
+        transforms.ColorJitter(0.2, 0.2, 0.2, 0.1)
+        ], p=0.5), # randomly change color effect for 50% of images
 
     # minor preprocessing
     transforms.ToTensor(), # convert to pytorch tensor
+    transforms.Normalize( # scale color channels consistently
+        mean=[0.485, 0.456, 0.406],
+        std=[0.229, 0.224, 0.225]
+    ),
     transforms.Lambda(lambda x: x.to(DEVICE)) # force gpu usage
     ])
 
@@ -77,5 +83,11 @@ def get_transforms(IMG_SIZE, DEVICE):
     val_transform = transforms.Compose([
         transforms.Resize(IMG_SIZE), # resize img properly
         transforms.ToTensor(), # convert to pytorch tensor
+        transforms.Normalize( # scale color channels consistently
+            mean=[0.485, 0.456, 0.406],
+            std=[0.229, 0.224, 0.225]
+        ),
+        transforms.Lambda(lambda x: x.to(DEVICE)) # force gpu usage
     ])
+    
     return train_transform, val_transform
