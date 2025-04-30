@@ -4,7 +4,10 @@
     https://www.kaggle.com/datasets/puneet6060/intel-image-classification
 
 
-## Final Validation Accuracy -- __ %
+## Final Validation Accuracy -- 94.00%
+
+
+
 
 ### Testing different base models
 ---------------------------------------------------------------
@@ -12,11 +15,11 @@
 #### Final Tests
 Chose ConvNeXt_Tiny because it was giving me similar accuracy to much larger, slower pre-trained models but without the size, slow speeds. 
 
-            ------------------------ FINAL ------------------
+            ------------------------ FINAL ------------------------
                 *** ConvNeXt_tiny(224x224) - 94% ***
-            -------------------------------------------------
+            -------------------------------------------------------
 
-### test more augmentation on training only
+#### test more augmentation on training only
     baseline - 92.2%
         horizontal flip (0.4) - 92.1%
         horizontal flip (0.5) - 92.2% ADDED
@@ -51,7 +54,7 @@ Chose ConvNeXt_Tiny because it was giving me similar accuracy to much larger, sl
     ConvNeXt_tiny(150x150) - 93.03% (256 BS) -- no dropout, with Augmentation
     ConvNeXt_tiny(224x224) - 93.1 % (256 BS) -- no dropout/ with Augmentation
 
-    ----------------------------------------------
+    ---------------------------------------------------------------
     ConvNeXt_tiny(96x96) - 91.5% (256 BS, 0.3 dropout) -- pre classifier dropout
     ConvNeXt_tiny(96x96) - 92.4% (256 BS, 0.3 dropout) -- pre batchnorm dropout
     ConvNeXt_tiny(96x96) - 92.1% (256 BS, 0.3 dropout) -- start and mid seq dropout
@@ -62,7 +65,7 @@ Chose ConvNeXt_Tiny because it was giving me similar accuracy to much larger, sl
     ConvNeXt_tiny(150x150) - 91.4% (256 BS) -- dual 15% dropout/ with Augmentation
     ConvNeXt_tiny(96x96) - 92.1% (256 BS) -- no dropout, no augmentation
 
-    ---------------------------------------------
+    ---------------------------------------------------------------
 
     EfficientNetB0 (2019)
         (224x224) : 87.7%
