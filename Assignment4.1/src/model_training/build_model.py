@@ -1,86 +1,94 @@
 import torch
 import torch.nn as nn
-from torchvision import models
 import torch.optim as optim
 from skorch import NeuralNetClassifier
-from skorch.helper import predefined_split
-from torchvision.models import EfficientNet_B0_Weights
+from skorch.dataset import ValidSplit
 from skorch.callbacks import EarlyStopping, LRScheduler, EpochScoring
-
+from torch.optim.lr_scheduler import OneCycleLR
 from src.model_training.cleanup import EpochCleanupCallback
+from src.model_training.get_model_version import get_model
 
-# create the model (base: EfficientNetB0, classification layer: custom)
+# create the model (base: ConvNeXt_Tiny, classification layer: custom)
 class Model(nn.Module):
     # class constructor
     def __init__(self, num_classes):
         super(Model, self).__init__()
-        # load EfficientNetB0 model as base
-        self.model = models.efficientnet_b0(weights=EfficientNet_B0_Weights.IMAGENET1K_V1)
-        
-        # freeze all layers in the EfficientNetB0 base
-        for param in self.model.parameters():
-            param.requires_grad = False
-        
-        # convert top layer to match our number of classes
-        self.model.classifier[1] = nn.Linear(self.model.classifier[1].in_features, num_classes)
-        
-        # unfreeze the top/classifier layer for training
-        for param in self.model.classifier.parameters():
-            param.requires_grad = True
+        # load pretrained model as base
+        #   cn_t, cn_s, cn_b (tiny, small, base) 
+        # final choice: ConvNeXt_Tiny, smallest, fastest but similar accuracy to larger, slower models
+        self.model, in_features = get_model("cn_t") # get the pretrained model 
+
+        self.pool = nn.AdaptiveAvgPool2d((1, 1)) # use gap to reduce dimensions
+        self.flatten = nn.Flatten() # flatten pool to 1D Vector
+
+        self.classifier = nn.Sequential(
+            nn.Linear(in_features, 128), # convert flatten into 128 hidden layer
+            nn.BatchNorm1d(128), # normalize
+            nn.ReLU(), # apply relu activation 
+            nn.Linear(128, num_classes), # get output layer as num_classes features
+        )
 
     # method to pass data through model
-    def forward(self, input_data, **kwargs):
-        return self.model(input_data)
+    def forward(self, x):
+        x = self.model(x) # get features from pretrained model
+        x = self.pool(x)  # use gap to reduce dimensions     
+        x = self.flatten(x) # flatten to 1D vector
+        x = self.classifier(x) # use custom classifier layer
+        return x
 
 # build an instance of our model
-def build_model(train_ds, train_val_ds, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
-    # force model to use GPU or throw error
-    device = 'cuda' if torch.cuda.is_available() else None
-    if device is None:
-        raise RuntimeError("GPU not available.")
-    
+def build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE):
+
+    # steps = dataset_length / batch_size
+    steps_per_epoch = len(dataset) // BATCH_SIZE
+
     # wrap the model in skorch classifier for abstraction/ease of use
-    model = NeuralNetClassifier(
-        Model,
+    classifier = NeuralNetClassifier(
+        module=Model,
         module__num_classes=NUM_CLASSES, # number of classifiable classes 
         max_epochs=NUM_EPOCHS, # number of epochs
         optimizer=optim.Adamax, # adamax optimizer, dynamic LR updates
-        criterion=nn.CrossEntropyLoss, # use cross entropy for categorical classificaton labels
-        train_split=predefined_split(train_val_ds),
+        criterion=nn.CrossEntropyLoss, # use cross entropy for categorical classification labels
+        train_split=ValidSplit(0.5, stratified=True, random_state=42),
         iterator_train__batch_size=BATCH_SIZE, # set batch sizes
         iterator_valid__batch_size=BATCH_SIZE, # set batch sizes
-        device=device, # run on gpu,
-        classes=list(range(NUM_CLASSES)), # tell nn what classes there are
+        device=DEVICE, # force gpu usage,
+        classes=list(range(NUM_CLASSES)), # convert classes to ints
+        verbose=2, # output logs
+        callbacks=[
+        # log training accuracy
+        EpochScoring(scoring='accuracy', lower_is_better=False, name='train_acc', on_train=True), 
+
+        # optimizes LR 
+        LRScheduler(
+        policy=OneCycleLR, # use OneCycleLr
+        max_lr=0.01, # starting lr
+        steps_per_epoch=steps_per_epoch, # steps to take each epoch
+        epochs=NUM_EPOCHS, # num of epochs
+        pct_start=0.3,  # % of steps to spend increasing LR
+        anneal_strategy='cos',  # cosine annealing
+        step_every='batch', # start stepping every batch
+        ),
+
+        # stops if no improvement in 5 epochs
+        EarlyStopping(monitor='valid_acc', patience=3, threshold=1e-5, lower_is_better=False, load_best=True),
+
+        # cleanup for resource optimization
+        EpochCleanupCallback()
+        ], 
     )
 
-    return model
+    return classifier
 
 # function to train/fit the model
-def train_model(model, train_ds):
-   
-    # LR scheduler (reduce LR if val acc doesnt increase)
-    lr_scheduler = LRScheduler(
-            policy='ReduceLROnPlateau',
-            monitor='valid_acc',  # monitor validation accuracy
-            factor=0.5, # reduce LR by this factor
-            patience=3,# wait this many epochs before reducing
-            threshold=1e-6, # min change to qualify as improvement
-            cooldown=2, # wait time before resuming normal operation
-            min_lr=1e-7, # don't go lower than this
-        )
-    # quit early if no val_acc improvement
-    early_stop = EarlyStopping(monitor='valid_acc', patience=5)  # stops if no improvement in 3 epochs
-    # log training accuracy
-    train_acc_log = EpochScoring(scoring='accuracy', lower_is_better=False, name='train_acc', on_train=True)
+def train_model(classifier, dataset):
+    y_labels = torch.tensor(dataset.labels)
 
-    cleanup_epoch = EpochCleanupCallback()
-
-    # fit the model
-    model.fit(
-        train_ds,  # training data set
-        y=None, # dont provide labels separately
-        callbacks=[lr_scheduler, early_stop, train_acc_log, cleanup_epoch],  # callbacks for early stopping, LR reduction, logging train acc and custom resource optimization
-        verbose=1,  # log training data
+    classifier.fit(
+        dataset,  # dataset to train/fit with
+        y=y_labels # pass labels for training
     )
 
-    return model
+    return classifier
+
+

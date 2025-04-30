@@ -4,8 +4,8 @@ import warnings
 import os
 
 from src.dataset_setup.setup import setup_dataset
-from src.dataset_setup.dataset_loader import build_dataset_list, create_dataset
-from src.user_experience.ux import introduction, visualize_stats, visualize_predictions
+from src.dataset_setup.dataset_loader import build_dataset_list, create_dataset,get_transforms
+from src.user_experience.ux import introduction, visualize_stats
 from src.model_training.build_model import build_model, train_model
 from src.model_training.cleanup import cleanup
 
@@ -22,98 +22,72 @@ pred_dataset = './dataset/seg_pred/seg_pred'
 DATASET_DIR = train_dataset
 CLASS_NAMES = [d.name for d in Path(DATASET_DIR).iterdir() if d.is_dir()] # get class names from subfolder headings
 CLASS_MAP = {name: index for index, name in enumerate(sorted(CLASS_NAMES))}
-IMG_SIZE = (96, 96) # image resolution
-BATCH_SIZE = 16 # num of images per sample
+IMG_SIZE = (224, 224) # image resolution
+BATCH_SIZE = 256 # num of images per sample
 NUM_CLASSES = len(CLASS_NAMES) # total number of classes
-NUM_WORKERS = 4 # cpu processes
-NUM_EPOCHS = 5 # num of epochs to run
-#TODO:
-#   class weights?
-#   get running
-#   break 95% accuracy
-#   fix dataset, no sea or street in ds, uneven mountain set
-#   include train acc in visualizer
+NUM_EPOCHS = 15 # num of epochs to run
+
+# force model to use GPU or throw error
+DEVICE = 'cuda' if torch.cuda.is_available() else None
+if DEVICE is None:
+    raise RuntimeError("GPU not available.")
 
 # main logic flow control
 def main():
-    # ------------------------------
     # output description of the program to the user
     introduction()
-    # ------------------------------
-
-    print("---------------------------------------------------------")
     
+    print("\n\n---------------------------------------------------------")
     # log what device we are training with
     print(f"Running on device: {'GPU - ' + torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'CPU'}")
-
     print("---------------------------------------------------------")
 
-    print("\n\nStep 1: Prepare the Datasets...\n")
-    # ------------------------------
+
+    print("\n\n---------------------------------------------------------")
+    print("Step 1: Preparing the Datasets...")
+    print("---------------------------------------------------------\n\n")
+
     # prepare the training dataset
-    print("\n Preparing the Training Dataset...\n")
-    train_ds, training_val_ds = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, IMG_SIZE, BATCH_SIZE,NUM_CLASSES, NUM_WORKERS)
-    # ------------------------------
+    train_transform, val_transform = get_transforms(IMG_SIZE, DEVICE) # apply augmentation
+    dataset = setup_dataset(DATASET_DIR, CLASS_MAP, CLASS_NAMES, train_transform) # build full dataset
 
-    # ------------------------------
     # prepare a dataset exclusively for validation
-    print("\nPreparing the Validation Dataset...\n")
     test_list = build_dataset_list(val_dataset, CLASS_MAP)
-    # test_loader = create_dataset(test_list, IMG_SIZE, BATCH_SIZE, NUM_WORKERS)
-    test_ds = create_dataset(test_list, IMG_SIZE)
-
-    # ------------------------------
+    test_ds = create_dataset(test_list, val_transform)    
     
-    print("---------------------------------------------------------")
-    
-    # ------------------------------
-    print("\n\nStep 2: Building and Training...")
+    print("\n---------------------------------------------------------")
+    print("Step 2: Building and Training...")
+    print("---------------------------------------------------------\n\n")
     # build the model
-    model = build_model(train_ds, training_val_ds, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE)
+    classifier = build_model(DEVICE, dataset, NUM_CLASSES, NUM_EPOCHS, BATCH_SIZE)
 
-    # Train the model on the dataset
-    model = train_model(model, train_ds)
-    # ------------------------------
+    # Train the classifier on the dataset
+    classifier = train_model(classifier, dataset)    
     
-    print("---------------------------------------------------------")
-    
-    # ------------------------------
     # Test the Model on the exclusive validation set
-    print("\n\nStep 3: Evaluate Model Performance...\n")
+    print("\n\n---------------------------------------------------------")
+    print("Step 3: Evaluate Model Performance...")
+    print("---------------------------------------------------------")
     y_test = [x[1] for x in test_ds]  # all the labels
-    accuracy = model.score(test_ds, y=y_test) # get model accuracy
-    #              # get model loss? 
-    # output test scores
-    print(f"Final Validation Accuracy: {accuracy * 100:.2f}%")
-    # print(f" Final Validation Loss: {loss:.4f}")
-    # ------------------------------
+    accuracy = classifier.score(test_ds, y=y_test) # get model accuracy
 
-    print("---------------------------------------------------------\n")
+    # output test scores (val acc, val loss)
+    final_val_loss = classifier.history[-1]['valid_loss']
+    print(f"\n    Final Validation Accuracy: {accuracy * 100:.2f}%")
+    print(f"    Final Validation Loss: {final_val_loss:.4f}")
 
-    # ------------------------------
-    # # get predictions on prediction dataset
-    # print("\n\nStep 4: Get Model Predictions on the Prediction Dataset...\n")
-    # pred_paths = [str(p) for p in Path(pred_dataset).rglob("*.jpg")]
-    # pred_ds = create_dataset(pred_paths, IMG_SIZE)
-    # all_preds = model.predict(pred_ds)
-    # visualize_predictions(all_preds, pred_paths, CLASS_NAMES)
-    # ------------------------------
-
-    print("---------------------------------------------------------\n")    
-    # ------------------------------
-    # graph loss v. acc
-    print("\n\nStep 5: Visualizing Performance...\n")
-    visualize_stats(model)
-    # ------------------------------
+    # graph loss v. acc (training and validation)
+    print("\n\n---------------------------------------------------------")    
+    print("Step 5: Visualizing Performance...")
+    print("---------------------------------------------------------\n\n")
+    visualize_stats(classifier)
 
     print("---------------------------------------------------------")
-
-    # ------------------------------
-    print("\nRunning Final Cleanup...\n")
-    cleanup(model, is_final=True)
-    # ------------------------------
+    print("Running Final Cleanup...")
+    print("---------------------------------------------------------")
+    cleanup(classifier, is_final=True)
     
-    print("\nExiting...")
-    print("\n----------------------------------------\n")
+    print("\n\nExiting...")
+    print("----------------------------------------\n")
 
 main()

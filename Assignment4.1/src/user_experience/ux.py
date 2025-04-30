@@ -1,18 +1,17 @@
 import matplotlib.pyplot as plt
-from PIL import Image
 
 # output model description to user
 def introduction():
-    print("\n\n---------------------------------------------------------------------------------- Intel Image Classifier ----------------------------------------------------------------------------------\n")
-    print("This model classifies images into 1/6 categories [buildings, forest, glacier, mountain, sea, street] from the Intel Image Classification dataset.")
+    print("\n\n------------------------------------------------------------------------------------ Intel Image Classifier ------------------------------------------------------------------------------------\n")
     print("Intel Image Classification Dataset: https://www.kaggle.com/datasets/puneet6060/intel-image-classification")
+    print("\nThis model classifies images into 1/6 categories [buildings, forest, glacier, mountain, sea, street] from the Intel Image Classification dataset.")
     print("The model is built using a Convolutional Neural Network (CNN), which automatically learns important features from the training images.")
     print("By recognizing these features, the model can predict the correct type of Image from a set of unseen test images.")
     print("\n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
 
 # visualize loss v acc during training and validation 
-def visualize_stats(model):
-    model_history = model.history
+def visualize_stats(classifier):
+    model_history = classifier.history
     # get metrics from model_history
     val_acc = [epoch['valid_acc'] for epoch in model_history]
     train_loss = [epoch['train_loss'] for epoch in model_history]
@@ -47,24 +46,3 @@ def visualize_stats(model):
 
     plt.tight_layout() # adjust spacing between the plots
     plt.show() # display them
-
-def visualize_predictions(all_preds, pred_list, class_names):
-     # Set up subplots to visualize
-    fig, axes = plt.subplots(5, 5, figsize=(15, 15))
-    axes = axes.flatten()
-
-    # loop through each image and it's prediction
-    for index, (img_path, pred) in enumerate(zip(pred_list, all_preds)):
-        class_index = pred.argmax()  # get the predicted class index
-        img = Image.open(img_path)  # load image to display
-
-        # plot the image 
-        ax = axes[index]
-        ax.imshow(img)
-
-        # plot the prediction
-        ax.set_title(f"Pred: {class_names[class_index]}")  # set prediction as title
-        ax.axis('off')  # hide axis
-
-    plt.tight_layout()  # adjust spacing
-    plt.show()

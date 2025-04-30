@@ -3,7 +3,6 @@ from pathlib import Path
 from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
-from collections import Counter
 
  # define dataset class to wrap our image paths and labels
 class ImageDataset(Dataset):
@@ -45,42 +44,38 @@ def build_dataset_list(dataset_dir, class_map):
         for img_file in os.listdir(folder_path):
             dataset.append((str(folder_path / img_file), label))
 
-    print(f"\nLoaded {len(dataset)} images.") # output total image count
+    print(f"\nLoaded {len(dataset)} images from {Path(dataset_dir).name}\n") # output total image count
     return dataset
 
-
-def create_dataset(image_label_list, img_size):
+# convert img paths/labels into ImageDataset
+def create_dataset(image_label_list, transform):
     # separate the list into individual lists of paths and labels
     paths, labels = zip(*image_label_list)
-
-    # Apply transformations as preprocessing
-    transform = transforms.Compose([
-        transforms.Resize(img_size),
-        transforms.ToTensor(),
-    ])
 
     # init the dataset with data
     ds = ImageDataset(paths, labels, transform)
     return ds 
 
-# function to determine class weights, allows us to use all data without bias
-def get_class_weights(image_labels_list, num_classes):
-    # count how many images/labels per class
-    label_counts = Counter(label for _, label in image_labels_list)
-
-    # toal number of images in dataset
-    total_images = sum(label_counts.values())
-
-    # get the class weights
-    class_weights = {
-        class_id: total_images / (num_classes * count)
-        for class_id, count in label_counts.items()
-    }
+# apply augmentation and minor preprocessing
+def get_transforms(IMG_SIZE, DEVICE):
+    print("Applying Augmentation to Training Data...")
     
-     # output the class weights
-    print("\n---------- Class Weights ----------\n")
-    for class_id, weight in class_weights.items():
-        print(f"Class {class_id}: {weight:.4f}")
-    print("\n------------------------------------\n")
-    
-    return class_weights
+    # training ds transforms
+    train_transform = transforms.Compose([
+    # augmentation
+    transforms.RandomResizedCrop(IMG_SIZE),  # add random resizing
+    transforms.RandomHorizontalFlip(), # randomly flip images horizontally
+    transforms.RandomRotation(4), # rotate +/- 2 degrees randomly
+    transforms.ColorJitter(brightness=0.1, contrast=0.2), # randomly change brightness/contrast
+
+    # minor preprocessing
+    transforms.ToTensor(), # convert to pytorch tensor
+    transforms.Lambda(lambda x: x.to(DEVICE)) # force gpu usage
+    ])
+
+    # Val transforms/minor preprocessing
+    val_transform = transforms.Compose([
+        transforms.Resize(IMG_SIZE), # resize img properly
+        transforms.ToTensor(), # convert to pytorch tensor
+    ])
+    return train_transform, val_transform
