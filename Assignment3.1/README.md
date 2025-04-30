@@ -1,28 +1,28 @@
-# Screenshots are locatied in Assignment3.1/Screenshots folder
+# Screenshots are located in Assignment3.1/Screenshots folder
 
-##**The dataset I used is located here :**
+## **The dataset I used is located here :**
  [Military Aircraft Dataset](https://www.kaggle.com/datasets/nathanvititoe/military-aircraft-datasetsubset/data)
 
-##**Used a Convolutional Neural Network to identify aircraft types, and classify the images:** 
+## **Used a Convolutional Neural Network to identify aircraft types, and classify the images:** 
 - [IBM: Convolutional Neural Networks](https://www.ibm.com/think/topics/convolutional-neural-networks)
 - [GeeksforGeeks: Introduction to Convolutional Neural Networks](https://www.geeksforgeeks.org/introduction-convolution-neural-network/)
 - [Podcast Episode](https://open.spotify.com/episode/3WloHMXls2B7urlrcL6cCH?si=PmHsO3ThQi2QbKbqWAYG6g)
 
 
-##**Utilized Tranfer Learning and EfficientNetB0 in order to get higher accuracy:**
+## **Utilized Tranfer Learning and EfficientNetB0 in order to get higher accuracy:**
 - [IBM: Transfer Learning Overview](https://www.ibm.com/think/topics/transfer-learning#:~:text=Transfer%20learning%20is%20a%20machine,2)
 - [Keras: EfficientNet](https://keras.io/api/applications/)
 - [Keras Transfer Learning Example](https://keras.io/examples/vision/image_classification_efficientnet_fine_tuning/)
 - [Keras Guide: Transfer Learning](https://keras.io/guides/transfer_learning/)
 
 
- ##**Tested Different pre-trained model validation accuracy**
+ ## **Tested Different pre-trained model validation accuracy**
     -- maybe test mobile net lite for speed/accuracy, only available through tensorflowhub api
     -- EfficientNetv1 works better w EfficientNetV2 preprocessing??
-    -- EfficientNetv2 works better w EfficientNetv1 preprocesing?? 
+    -- EfficientNetv2 works better w EfficientNetv1 preprocessing?? 
 
 ### Dialing in the hyperparameters for EfficientNetB0
-    -------------------------------- **Final Tests** -------------------------------
+    ** -------------------------------- Final Tests ------------------------------- **
     EfficientNetB0(224x224)/10 epochs
         0.5 dropout/avg pooling - 93.75% accuracy (moderate overfit)
         0.5 dropout/max pooling - 92.2% accuracy
@@ -52,7 +52,7 @@
     
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 16)
         (224x224) : 93.5% accuracy - small_subset/10 epochs
-        **(224x224) : 94.2% accuracy - small_subset/20 epochs**
+        ** (224x224) : 94.2% accuracy - small_subset/20 epochs **
         (96x96)   : 90% accuracy - small_subset/10 epochs
 
     EfficientNetB0 using EfficientNetV2 preprocessing (batch size: 8)
