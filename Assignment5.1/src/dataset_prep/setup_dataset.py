@@ -31,6 +31,6 @@ def setup_dataset(DATASET_DIR, CSV_PATH, BATCH_SIZE, SAMPLE_RATE, duration_lengt
     train_ds, val_ds = get_datasets(train_list, val_list, BATCH_SIZE, SAMPLE_RATE, duration_length)
 
     # display example spectrogram to show what the model will use for classification
-    show_spectrogram(train_ds, label_names)
+    # show_spectrogram(train_ds, label_names)
     
     return train_ds, val_ds, label_names
