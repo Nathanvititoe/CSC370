@@ -34,7 +34,7 @@ NUM_EPOCHS = 20
 header_title_indent = " " * 18
 header_line_indent = " " * 15
 def main():
-    print("introduction here\n\n")
+    print("\n\nintroduction here\n\n")
 
     check_gpu() # check if gpu is being used
 
