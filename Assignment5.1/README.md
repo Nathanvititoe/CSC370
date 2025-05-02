@@ -19,3 +19,18 @@ https://learn.microsoft.com/en-us/training/modules/intro-audio-classification-te
 
 https://tqdm.github.io/
 
+### YAMNet & Tensorflow specific -- Audio Classification
+- [Audio Classification using Google’s YAMNet – GeeksForGeeks](https://www.geeksforgeeks.org/audio-classification-using-googles-yamnet/)
+- [Transfer Learning for Audio – TensorFlow Tutorial](https://www.tensorflow.org/tutorials/audio/transfer_learning_audio)
+- [Intro to Audio Classification with TensorFlow – Microsoft Learn](https://learn.microsoft.com/en-us/training/modules/intro-audio-classification-tensorflow/)
+
+### Examples of Same Dataset
+- [Urban Sound Classification – Satoru90 (Kaggle)](https://www.kaggle.com/code/satoru90/urban-sound-classification)
+- [Urban8K TensorFlow Audio Classifier – Pulkit Dhingra (Kaggle)](https://www.kaggle.com/code/pulkit12dhingra/urban-8k-tensorflow-audio-classification)
+
+### General Audio Classification
+- [How to Classify Sound Using FFT and Neural Networks (StackOverflow)](https://stackoverflow.com/questions/55977956/how-to-classify-sound-using-fft-and-neural-network-should-i-use-cnn-or-rnn)
+- [Classify MNIST Audio using Spectrograms + Keras CNN – Christian Lillelund (Kaggle)](https://www.kaggle.com/code/christianlillelund/classify-mnist-audio-using-spectrograms-keras-cnn)
+
+### For Loading UI
+- [TQDM – Progress Bars for Python](https://tqdm.github.io/)
