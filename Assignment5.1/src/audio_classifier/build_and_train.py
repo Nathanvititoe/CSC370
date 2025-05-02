@@ -1,6 +1,6 @@
 from tensorflow.keras import layers, models # type: ignore
 
-
+# create the simple CNN to classify yamnet embeddings
 def create_classifier(num_classes):
     # build classifier w/ input shape same as yamnet output shape
     audio_classifier = models.Sequential([

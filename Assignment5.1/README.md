@@ -2,6 +2,28 @@
 https://www.kaggle.com/datasets/chrisfilo/urbansound8k
 
 
+# Functioning: 
+    YAMNet:
+        - takes in raw audio waveforms and converts them into a log-mel spectrogram (visualization of how frequency changes over time).
+        
+        - uses that spectrogram and feeds it through a Convolutional Neural Network (CNN) that was pre-trained on "Audioset" (large dataset)
+        
+        - outputs a set of feature vectors with input shape (1024)
+
+    Custom:
+        - Remove the YAMNet classifier (top layer)
+
+        - Create a custom classifier (top layer) and use the YAMNet output as input (input_shape=1024)
+
+            -  Single Convolutional Layer 
+                    -Dense Layer (256 neurons)
+                    -ReLu activation function
+            
+            - Output Layer with output_shape as the number of classes we are trying to classify (using softmax function)
+                 
+
+
+
 ## Resources :
 https://www.geeksforgeeks.org/audio-classification-using-googles-yamnet/
 
