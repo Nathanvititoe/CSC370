@@ -2,40 +2,33 @@
 import warnings
 import os
 warnings.filterwarnings("ignore") 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['TF_CPP_MIN_VLOG_LEVEL'] = '3'
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
-tf.random.set_seed(42) 
-tf.get_logger().setLevel('FATAL')
-tf.autograph.set_verbosity(0,True)
+from sklearn.model_selection import train_test_split
+import numpy as np
 
-from src.dataset_prep.setup_dataset import setup_dataset
-from src.model.build_and_train import build_model, train_model, compile_model
-
+from src.prep_data.preprocess import load_data_from_folds
+from src.audio_classifier.build_and_train import create_classifier
 
 # force gpu usage
 assert tf.config.list_physical_devices('GPU'), "No GPU available. Exiting."
-# Lock TensorFlow to use only the first GPU
-gpus = tf.config.list_physical_devices('GPU')
-if gpus:
-    tf.config.set_visible_devices(gpus[0], 'GPU')  # hide CPU
-    tf.config.experimental.set_memory_growth(gpus[0], True)
 
 # TODO: 
-# turn on spectrograms after debug
-# consider using kapre for spectrogram creation
+# turn on spectrograms when done training
+# add more clean visualizations
+# create more logs/print statements
 
 # directory paths
-DATASET_DIR = './dataset/dataset_folds'
+AUDIO_PATH = './dataset/dataset_folds'
 CSV_PATH = './dataset/UrbanSound8K.csv'
 
 # config variables
 valid_split = 0.2 # % of dataset to use for validation
 BATCH_SIZE = 32 # num of files per sample 
-SAMPLE_RATE = 22050 # default sample rate (from kaggle examples)
-duration_length = 4 # duration of audio (seconds)
+SAMPLE_RATE = 16000 # sample rate to downsample to
+DURATION_SEC = 4 # time length of audio file (seconds)
+TARGET_SAMPLES = SAMPLE_RATE * DURATION_SEC # technical length of file (samples per sec * # of seconds)
 NUM_EPOCHS = 20
 
 header_title_indent = " " * 18
@@ -47,23 +40,31 @@ def main():
 
     print(f"\n{header_title_indent}Prepare the Datasets")
     print(f"{header_line_indent}--------------------------")
+    features, labels = load_data_from_folds(AUDIO_PATH, CSV_PATH, SAMPLE_RATE, TARGET_SAMPLES)
+    num_classes = len(np.unique(labels))
 
-    train_ds, val_ds, label_names = setup_dataset(DATASET_DIR, CSV_PATH, BATCH_SIZE, valid_split)
-    NUM_CLASSES = len(label_names)
+    # split the dataset
+    train_features, val_features, train_labels, val_labels = train_test_split(features, labels, test_size=0.2, stratify=labels, random_state=42)
 
-     # get input shape from one sample
-    for waveform, _ in train_ds.take(1):
-        input_shape = waveform.shape[1:]
-        break
+    print(f"\n\n{header_title_indent}Build and Train the Audio Classifier\n\n")
+    audio_classifier = create_classifier(num_classes)
 
+    classifier_history = audio_classifier.fit(
+        train_features, train_labels,
+        validation_data=(val_features, val_labels),
+        epochs=20,
+        batch_size=32
+        )
+    #TODO: use history to create visualizations
 
-    print(f"\n\n{header_title_indent}Build and Train the Model")
-    model = build_model(input_shape, NUM_CLASSES)
-    compile_model(model)
-    train_model(model, train_ds, val_ds, epochs=NUM_EPOCHS)
-
+    print(f"\n\n\n{header_title_indent}Test the Audio Classifier")
+    print(f"{header_line_indent}-------------------------------\n")
+    print("Final Evaluation:")
+    loss, acc = audio_classifier.evaluate(val_features, val_labels)
+    print(f"Validation Loss: {loss:.4f}, Validation Accuracy: {acc:.4f}\n\n")
 
     print("Exiting...")
+
 
 # function to check if gpu is being used
 def check_gpu():
