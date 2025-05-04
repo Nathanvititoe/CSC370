@@ -3,15 +3,15 @@ from termcolor import colored
 
 # description of the model for user (using tqdm for color/ui)
 def introduction():
-    tqdm.write(colored("\n\n\nUrbanAudio8k Audio Classifier", "yellow", attrs=["bold"]))
-    tqdm.write(colored("--------------------------------\n", "white"))
+    tqdm.write(colored("\nUrbanAudio8k Audio Classifier", "yellow", attrs=["bold"]))
+    tqdm.write(colored("--------------------------------\n", "blue"))
 
     tqdm.write(colored(
         "This is an audio classifier built using TensorFlow and YAMNet, it's trained on the Kaggle UrbanSound8K dataset to detect different environmental sounds like sirens,\n"
-        "car horns, dog barks, etc.\n", "white", attrs=["bold"]))
+        "car horns, dog barks, etc.\n", "blue", attrs=["bold"]))
 
     tqdm.write(colored("Dataset :\n", "yellow"))
-    tqdm.write(colored("   UrbanSound8K: ", "white", attrs=["bold"]) + colored("https://www.kaggle.com/datasets/chrisfilo/urbansound8k", "blue", attrs=["underline"]))
+    tqdm.write(colored("   UrbanSound8K: ", "blue", attrs=["bold"]) + colored("https://www.kaggle.com/datasets/chrisfilo/urbansound8k", "blue", attrs=["underline"]))
 
     tqdm.write(colored("\n How it works :\n", "yellow"))
 
@@ -26,3 +26,12 @@ def introduction():
     for step in steps:
         tqdm.write(colored(f"   {step}", "green", attrs=["bold"]))
     print("\n\n")
+
+
+def get_acc_color(acc):
+    if acc >= 0.92:
+        return "green"
+    elif acc >= 0.85:
+        return "yellow"
+    else:
+        return "red"

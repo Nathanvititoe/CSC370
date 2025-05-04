@@ -1,39 +1,42 @@
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
 
-# function to plot class and file distribution (per fold)
+# TODO: cleanup and comment
 def plot_dataset(csv_path):
-    df = pd.read_csv(csv_path) # read csv
+    df = pd.read_csv(csv_path)
 
-    # Get files per fold
+    # Fold distribution
     files_per_fold = df['fold'].value_counts().sort_index()
-
-    # create dataframe
-    fold_df = pd.DataFrame({
-        "Fold": files_per_fold.index.astype(str),
-        "File Count": files_per_fold.values
-    })
-
-    # Get class distribution
     class_counts = df['class'].value_counts().sort_index()
 
-    # create subplots
-    _, axes = plt.subplots(1, 2, figsize=(15, 5))
+    fig, axes = plt.subplots(1, 2, figsize=(15, 5))
+    # colors = plt.cm.tab10.colors # get diff colors for every fold or class
 
-    # plot file distribution as bar graph
-    sns.barplot(x="Fold", y="File Count", data=fold_df, ax=axes[0]) # create bar graph
-    axes[0].set_title("Number of Files per Fold") # add title
-    axes[0].set_xlabel("Fold Number") # add x label
-    axes[0].set_ylabel("File Count") # add y label
-    axes[0].grid(True) # add grid overlay
+    # Fold Count bar graph
+    axes[0].bar(
+        files_per_fold.index.astype(str),
+        files_per_fold.values,
+        width=0.9,
+        color='salmon',
+        edgecolor='black'
+    )
+    axes[0].set_title("Number of Files per Fold")
+    axes[0].set_xlabel("Fold Number")
+    axes[0].set_ylabel("File Count")
+    axes[0].grid(True)
 
-    # plot class distribution as bar 
-    class_counts.plot(kind='bar', color='blue', edgecolor='black', ax=axes[1]) # plot class distr
-    axes[1].set_title("Class Distribution") # add title
-    axes[1].set_xlabel("Class") # add x label
-    axes[1].set_ylabel("Number of Samples") # add y label
-    axes[1].tick_params(axis='x', rotation=45) # adjust labels to 45 deg
+    # Class distribution bar chart
+    axes[1].bar(
+        class_counts.index,
+        class_counts.values,
+        width=0.9,
+        color='steelblue',
+        edgecolor='black'
+    )
+    axes[1].set_title("Class Distribution")
+    axes[1].set_ylabel("Number of Samples")
+    axes[1].tick_params(axis='x', rotation=45)
 
-    plt.tight_layout() # adjust layout
-    plt.show() # display plot
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.2)
+    plt.show()

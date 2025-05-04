@@ -1,14 +1,9 @@
-# suppress warnings
-import warnings
-import os
-warnings.filterwarnings("ignore") 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
 # external libraries
 import numpy as np
 import tensorflow as tf
 import tensorflow_hub as hub
 import scipy.signal
+import os 
 import soundfile as sf
 from tqdm import tqdm
 from src.ui.visualization import plot_spectrograms, plot_waveform_comparison
@@ -82,7 +77,7 @@ def load_data_from_folds(audio_path, df, sample_rate, duration, df_type):
         except Exception as e: 
             print(f"Skipping {path}: {e}")
 
-    if df_type.lower() == "training":
+    if df_type.lower() == "validation":
         # create plot w/ a spectrogram for each class
         plot_spectrograms(class_spectrograms)
 

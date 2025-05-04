@@ -40,4 +40,6 @@ Assignment4.1/dataset/*
 
 # Assignment 5.1
 Assignment5.1/dataset/*
+!Assignment5.1/dataset/custom_test_files/
+!Assignment5.1/dataset/custom_test_files/** */
 !Assignment5.1/dataset/.gitkeep
