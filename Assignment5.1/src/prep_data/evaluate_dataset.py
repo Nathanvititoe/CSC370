@@ -19,7 +19,7 @@ def plot_dataset(csv_path):
     class_counts = df['class'].value_counts().sort_index()
 
     # create subplots
-    _, axes = plt.subplots(1, 2, figsize=(18, 6))
+    _, axes = plt.subplots(1, 2, figsize=(15, 5))
 
     # plot file distribution as bar graph
     sns.barplot(x="Fold", y="File Count", data=fold_df, ax=axes[0]) # create bar graph

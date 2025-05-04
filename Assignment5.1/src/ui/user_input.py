@@ -10,14 +10,15 @@ def get_prediction(classifier, sample_rate, duration, class_names, user_predict_
     print("\n User Interaction")
     print("---------------------------")
 
+        # prompt user
+    print("Choose one of the following options:")
+    print("1: Get a prediction on your own audio file")
+    print("2: Randomly select an unseen audio sample from the test dataset")
+    print("3: Exit")
+    print("---------------------------")
+    
     # loop to prevent exiting without user command
     while True:
-        # prompt user
-        print("Choose one of the following options:")
-        print("1: Get a prediction on your own audio file")
-        print("2: Randomly select an unseen audio sample from the test dataset")
-        print("3: Exit")
-        print("---------------------------")
         choice = input("Enter 1, 2 or 3: ").strip()
 
         # check if user wants to exit 

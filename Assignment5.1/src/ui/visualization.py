@@ -63,31 +63,40 @@ def visualize_stats(classifier_history):
 # function to plot/compare raw v processed audio waveforms
 def plot_waveform_comparison(class_waveforms_raw, class_waveforms_proc):
     num_classes = len(class_waveforms_raw) # get number of classes
-    fig, axes = plt.subplots(num_classes, 2, figsize=(12, 2.5 * num_classes)) # create subplots
-    fig.suptitle("Raw vs. Processed Audio Waveforms", fontsize=16) # add title
-
+    fig, axes = plt.subplots(num_classes, 2, figsize=(10, 2 * num_classes), constrained_layout=True) # create subplots
+    fig.suptitle("Raw vs. Processed Audio Waveforms\n\n", fontsize=14) # add title (position and fontsize)
+    
     # iterate through audio waveform dict (for each class) 
     for i, label in enumerate(class_waveforms_raw):
-        raw_waveform, _ = class_waveforms_raw[label] # get raw waveform
-        proc_waveform, _ = class_waveforms_proc[label] # get processed waveform
+        raw_waveform, sr = class_waveforms_raw[label] # get raw waveform
+        proc_waveform, sr = class_waveforms_proc[label] # get processed waveform
 
-        # plot raw audio waveform
+        # convert samples to time for human readability (x axis)
+        raw_time = np.arange(len(raw_waveform)) / sr 
+        proc_time = np.arange(len(proc_waveform)) / sr
+
+        # plot raw audio waveform channels
         if raw_waveform.ndim == 2:  # if stereo audio
-            axes[i, 0].plot(raw_waveform[:, 0], label='Left', color='blue', alpha=0.5) # plot left channel 
-            axes[i, 0].plot(raw_waveform[:, 1], label='Right', color='red', alpha=0.5) # plot right channel
+            axes[i, 0].plot(raw_time, raw_waveform[:, 0], label='Left', color='blue', alpha=0.5) # plot left channel 
+            axes[i, 0].plot(raw_time, raw_waveform[:, 1], label='Right', color='red', alpha=0.5) # plot right channel
+            axes[i, 0].set_xlim(raw_time[0], raw_time[-1]) # trim stereo whitespace
         else:  # if mono audio
-            axes[i, 0].plot(raw_waveform, label='Mono', color='blue') # plot single channel
+            axes[i, 0].plot(raw_time, raw_waveform, label='Mono', color='blue') # plot single channel
+            axes[i, 0].set_xlim(raw_time[0], raw_time[-1]) # trim mono whitespace
+        
+        # Raw Audio Titles
+        axes[i, 0].set_title(f"{label} - Raw", fontsize=9) # add title for each subplot
+        axes[i, 0].set_ylabel("Amplitude", fontsize=7) # add y label
 
-        axes[i, 0].set_title(f"{label} - Raw") # add title for each subplot
-        axes[i, 0].set_ylabel("Amplitude") # add y label
-
-        # plot processed audio waveform
-        axes[i, 1].plot(proc_waveform, color='purple') # create plot
-        axes[i, 1].set_title(f"{label} - Processed") # add title
+        # processed audio plot and title
+        axes[i, 1].plot(proc_time, proc_waveform, color='purple') # create plot
+        axes[i, 1].set_title(f"{label} - Processed", fontsize=9) # add title
+        axes[i, 1].set_xlim(proc_time[0], proc_time[-1])  # trim processed whitespace
 
     # add x label
     for ax in axes.flat:
-        ax.set_xlabel("Samples")
+        ax.set_xlabel("Time (sec)", fontsize=7) # add x labels
+        ax.tick_params(axis='both', labelsize=6, length=2, pad=2) # set sizing for axis markings
 
     # create legend to show mono v. stereo
     legend_lines = [
@@ -96,9 +105,10 @@ def plot_waveform_comparison(class_waveforms_raw, class_waveforms_proc):
     mlines.Line2D([], [], color='purple', label='Processed Mono')
     ]
 
-    fig.legend(handles=legend_lines, loc='upper center', ncol=3, fontsize='medium') # add legend
-    plt.tight_layout(rect=[0, 0.03, 1, 0.97])
-    plt.show()
+    fig.legend(handles=legend_lines, loc='upper left', ncol=3, fontsize='medium') # add legend
+    plt.tight_layout() # adjust layout
+    # plt.tight_layout(rect=[0, 0, 1, 0.98])  # leaves ~8% space for title/legend
+    plt.show() # display plots
 
 # display one spectrogram per class
 def plot_spectrograms(class_spectrograms):
@@ -145,25 +155,28 @@ def plot_confusion_matrix(audio_classifier, val_features, val_labels, label_name
     y_pred = audio_classifier.predict(val_features) # get prediction on validation features
     y_pred_labels = np.argmax(y_pred, axis=1) # get prediction labels
 
+    fig, ax = plt.subplots(figsize=(7.5, 8.5))  # adjust size to fit everything
+
     # create scikit confusion matrix
     disp = ConfusionMatrixDisplay.from_predictions(
             val_labels, y_pred_labels,
             display_labels=label_names,
-            normalize='true',
-            cmap='viridis'
+            cmap='viridis',
+            ax=ax
             )
     # add title/subtitle
     disp.ax_.set_title("Confusion Matrix", fontsize=14)
-    disp.ax_.text(
-        0.5, 1.05,  # x and y in axis coordinates
-        "Correct predictions per actual class",
-        fontsize=10,
-        ha='center',
-        transform=disp.ax_.transAxes
-    )
+    # disp.ax_.text(
+    #     0.5, 0.955,  # x and y in axis coordinates
+    #     "Correct predictions per actual class",
+    #     fontsize=10,
+    #     ha='center',
+    #     transform=disp.ax_.transAxes
+    # )
 
     # rotate x axis labels for readability
     disp.ax_.set_xticklabels(disp.ax_.get_xticklabels(), rotation=45, ha='right')
 
+    # plt.subplots_adjust(top=0.88, bottom=0.15)
     plt.tight_layout() # adjust layout
     plt.show() # display plot
