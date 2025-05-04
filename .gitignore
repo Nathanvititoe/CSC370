@@ -2,8 +2,8 @@
 **/*.ipynb
 **/*.json
 **/*.jupyterlab-workspace
-Assignment1.1/.ipynb_checkpoints/.gitignore-checkpoint
 .ipynb_checkpoints/.gitignore-checkpoint
+.ipynb_checkpoints/
 
 # vsCode settings
 .vscode/
@@ -12,8 +12,6 @@ Assignment1.1/.ipynb_checkpoints/.gitignore-checkpoint
 .env/
 .venv/
 venv/
-tfenv/
-./tfenv
 
 # Logs / temp files
 *.log
@@ -28,6 +26,9 @@ AircraftClassifier/aircraft_dataset/*
 AircraftClassifier/trainedModels/*
 !AircraftClassifier/trainedModels/.gitkeep
 !AircraftClassifier/Visualizations/.gitkeep
+
+# Assignment1.1
+Assignment1.1/.ipynb_checkpoints/.gitignore-checkpoint
 
 # Assignment 3.1
 Assignment3.1/aircraft_dataset/*

@@ -1,8 +1,11 @@
-# Dataset : 
+# Instructions: 
+    This project must be run via Jupyter notebook or another GUI due to the extensive plotting and visualization
+
+## Dataset : 
 https://www.kaggle.com/datasets/chrisfilo/urbansound8k
 
 
-# Functioning: 
+## How I got it to work: 
     YAMNet:
         - takes in raw audio waveforms and converts them into a log-mel spectrogram (visualization of how frequency changes over time).
         
