@@ -7,7 +7,7 @@ https://www.kaggle.com/datasets/chrisfilo/urbansound8k
 ## How to Run the Notebook:
     - Create python venv in the CSC370/Assignment5.1 directory
     - Navigate to "main.ipynb"
-    - Select your as the python
+    - Select your created venv as the python kernel
     - Select "Run All Cells"
 
 ## How it Works: 

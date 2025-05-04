@@ -38,23 +38,17 @@ from src.ui.user_input import get_prediction
 # force gpu usage
 assert tf.config.list_physical_devices('GPU'), "No GPU available. Exiting."
 
-# TODO: 
-# cleanup requirements.txt
-# test optimizers? (time permitting)
-
-# FINAL CLEANUP
-
 # directory paths
 AUDIO_ROOT_PATH = './dataset/dataset_folds'
 CSV_PATH = './dataset/UrbanSound8K.csv'
 
 # config variables
 valid_split = 0.2 # % of dataset to use for validation
-BATCH_SIZE = 16 # num of files per sample(32 default--good result) 
+BATCH_SIZE = 128 # num of files per sample(32 default--good result) 
 SAMPLE_RATE = 16000 # sample rate to downsample to
 DURATION_SEC = 4 # time length of audio file (seconds)
 
-NUM_EPOCHS = 100
+NUM_EPOCHS = 200
 label_names = [
     "air_conditioner", "car_horn", "children_playing", "dog_bark", "drilling",
     "engine_idling", "gun_shot", "jackhammer", "siren", "street_music"

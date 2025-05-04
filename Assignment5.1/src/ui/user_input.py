@@ -19,97 +19,112 @@ from src.ui.visualization import audio_sampler
 
 # function to take input from user and display model prediction functionality
 def get_prediction(classifier, sample_rate, duration, class_names, user_predict_df, audio_root_path):
+    getting_predictions = True
+    # loop so users can get multiple predictions
+    while getting_predictions:
         # prompt user
-    print("\nChoose one of the following options:")
-    print("1: Get a prediction on your own audio file")
-    print("2: Randomly select an unseen audio sample from the test dataset")
-    print("3: Exit (not esc)\n")
+        print("\nChoose one of the following options:")
+        print("1: Get a prediction on your own audio file")
+        print("2: Randomly select an unseen audio sample from the test dataset")
+        print("3: Exit (not esc)\n")
 
-    # loop to prevent exiting without user command
-    while True:
-        choice = input("Enter 1, 2 or 3: ").strip()
-        is_custom_file = False # init boolean for coloring
-        # check if user wants to exit 
-        if choice == "3":
-            print("Exiting User Interaction...")
+        inputting_choice = True
+        # loop to prevent exiting without user command
+        while inputting_choice:
+            choice = input("Enter 1, 2 or 3: ").strip()
+            is_custom_file = False # init boolean for coloring
+            # check if user wants to exit 
+            if choice == "3":
+                print("Exiting User Interaction...")
+                inputting_choice = False # exit choice selection loop
+                getting_predictions = False # exit entirely (outer loop)
+                break
+            
+            # process user file path
+            elif choice == "1":
+                inputting_file_path = True 
+                is_custom_file = True # toggle boolean for coloring
+                # loop to get file path / prevent exiting
+                while inputting_file_path:
+                    # get user filepath as input
+                    filepath = input("Please enter the file path for your .wav file, relative to the CSC370 directory (or 'exit' to cancel): ").strip()
+                    
+                    # check if user wants to exit
+                    if filepath.lower() == "exit":
+                        print("User cancelled.")
+                        inputting_file_path = False # exit file path input loop
+                        inputting_choice = False # exit choice selection loop
+                    
+                    # get the audio file from the user provided path
+                    filepath = get_user_audio_file(filepath)
+
+                    # if its a good file, exit both loops
+                    if filepath:
+                        label = "Your File" # label to display
+                        inputting_file_path = False # exit file path input loop
+                        inputting_choice = False # exit choice selection loop
+
+                
+            # process unseen test file from user_predict_df
+            elif choice == "2":
+                row = user_predict_df.sample(n=1).iloc[0] # get a random sample from user_predict_df
+                filepath = os.path.join(audio_root_path, f"fold{row['fold']}", row['slice_file_name']) # get the full filepath
+                label = f"Unseen Sample: ({row['class']})" # get label to display
+                actual_label = row['class']
+                is_custom_file = False # ensure this remains false
+                inputting_choice = False # exit loop
+
+            # handle bad inputs
+            else:
+                print("Invalid Input. Please enter either 1, 2 or 3 (to exit)")   
+                continue
+        
+        num_samples = sample_rate * duration # technical audio length
+
+        try:
+            # load the file and preprocess (returns _,1024 shape)
+            waveform = load_file(filepath, sample_rate, num_samples)
+        except Exception as e:
+            print(f"Failed to load or preprocess the audio file: {e}")
             return
+
+        # display audio sample of the file
+        try:
+            audio_sampler(filepath, sample_rate, duration, label)
+        except Exception as e:
+            print(f"Failed to display audio sample: {e}")
+
+        # get model prediction
+        try:
+            # get yamnet embeddings 
+            embedding, _ = get_yamnet_embedding(waveform)
+            embedding = tf.convert_to_tensor(embedding[None, :], dtype=tf.float32)  # reshape embedding
+            pred = classifier.predict(embedding) # get prediction
+            pred_class = int(np.argmax(pred)) # get the class id
+            confidence = pred[0][pred_class] # get confidence level
+            pred_label = class_names[pred_class] # get class name
+            if is_custom_file == False:
+                pred_color = "green" if pred_label == actual_label else "red"
+                print(colored(f"\nPrediction : {pred_label}", pred_color)) # output prediction w/ color
+            else:
+                print(f"\nPrediction : {pred_label}") # output prediction w/o color
+
+            
+            # if low confidence, tell user (to handle user files that arent one of the 10 trained classes)
+            output_confidence = round((confidence * 100), 1)
+            if confidence < 0.7:
+                print(colored(f"Warning: Low confidence prediction: {output_confidence} — this audio may not match any known class.", "light_red"))
+            elif confidence < 0.8:
+                print(colored(f"Confidence : {output_confidence}%", "yellow")) 
+            else:
+                print(colored(f"Confidence : {output_confidence}%", "green")) 
+        except Exception as e:
+            print(colored(f"Prediction failed: {e}", "red"))
         
-        # process user file path
-        elif choice == "1":
-            is_custom_file = True # toggle boolean for coloring
-            # loop to get file path / prevent exiting
-            while True:
-                # get user filepath as input
-                filepath = input("Please enter the file path for your .wav file, relative to the CSC370 directory (or 'exit' to cancel): ").strip()
-                
-                # check if user wants to exit
-                if filepath.lower() == "exit":
-                    print("User cancelled.")
-                    return
-                
-                # get the audio file from the user provided path
-                filepath = get_user_audio_file(filepath)
-
-                # if its a good file, exit both loops
-                if filepath:
-                    label = "Your File" # label to display
-                    break
-            break
-        # process unseen test file from user_predict_df
-        elif choice == "2":
-            row = user_predict_df.sample(n=1).iloc[0] # get a random sample from user_predict_df
-            filepath = os.path.join(audio_root_path, f"fold{row['fold']}", row['slice_file_name']) # get the full filepath
-            label = f"Unseen Sample: ({row['class']})" # get label to display
-            actual_label = row['class']
-            is_custom_file = False # ensure this remains false
-            break
-
-        # handle bad inputs
-        else:
-            print("Invalid Input. Please enter either 1, 2 or 3 (to exit)")   
-            continue
-    
-    num_samples = sample_rate * duration # technical audio length
-
-    try:
-        # load the file and preprocess (returns _,1024 shape)
-        waveform = load_file(filepath, sample_rate, num_samples)
-    except Exception as e:
-        print(f"Failed to load or preprocess the audio file: {e}")
-        return
-
-    # display audio sample of the file
-    try:
-        audio_sampler(filepath, sample_rate, duration, label)
-    except Exception as e:
-        print(f"Failed to display audio sample: {e}")
-
-    # get model prediction
-    try:
-        # get yamnet embeddings 
-        embedding, _ = get_yamnet_embedding(waveform)
-        embedding = tf.convert_to_tensor(embedding[None, :], dtype=tf.float32)  # reshape embedding
-        pred = classifier.predict(embedding) # get prediction
-        pred_class = int(np.argmax(pred)) # get the class id
-        confidence = pred[0][pred_class] # get confidence level
-        pred_label = class_names[pred_class] # get class name
-        if is_custom_file == False:
-            pred_color = "green" if pred_label == actual_label else "red"
-            print(colored(f"\nPrediction : {pred_label}", pred_color)) # output prediction w/ color
-        else:
-            print(f"\nPrediction : {pred_label}") # output prediction w/o color
-
-        
-        # if low confidence, tell user (to handle user files that arent one of the 10 trained classes)
-        output_confidence = round((confidence * 100), 1)
-        if confidence < 0.8:
-            print(colored(f"Warning: Low confidence prediction: {output_confidence} — this audio may not match any known class.", "light_red"))
-        elif confidence < 0.9:
-            print(colored(f"Confidence : {output_confidence}%", "yellow")) 
-        else:
-            print(colored(f"Confidence : {output_confidence}%", "green")) 
-    except Exception as e:
-        print(colored(f"Prediction failed: {e}", "red"))
+        # prompt for another prediction
+        response = input("\nWould you like to classify another file? (y/n): ").strip().lower()
+        if response.strip().lower() == "n":
+            getting_predictions = False
 
 # function to convert non-wav files to wav files
 def convert_files_to_wav(input_path, output_path):

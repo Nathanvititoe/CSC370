@@ -1,5 +1,5 @@
-from tensorflow.keras import layers, models # type: ignore
-from tensorflow.keras.optimizers import Adam, AdamW, Adamax # type: ignore
+from tensorflow.keras import layers, models, regularizers # type: ignore
+from tensorflow.keras.optimizers import AdamW # type: ignore
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau # type: ignore
 from src.ui.cleanup import MemoryCleanupCallback
 
@@ -11,7 +11,8 @@ def create_classifier(num_classes):
         layers.Input(shape=(1024,)),  # input yamnet 1024-embedding (feature vector)
 
         # conv layer
-        layers.Dense(256, activation='relu'), # dense layer, 256 neurons/nodes
+        layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(1e-3)), # dense layer, 256 neurons/nodes
+        layers.BatchNormalization(), # normalize each batch
         layers.Dropout(0.4), # randomly drop 40% of neurons (prevents overfitting)
         
         # output layer
@@ -20,7 +21,7 @@ def create_classifier(num_classes):
     
     # compile the model
     audio_classifier.compile(
-        optimizer=AdamW(learning_rate=5e-3, weight_decay=1e-2), # use adam for optimization, starting learning rate (def- Adam(lr=0.005))
+        optimizer=AdamW(learning_rate=9e-4, weight_decay=4e-2), # use adam for optimization
         loss='sparse_categorical_crossentropy', # categorical crossentropy for multi-classification
         metrics=['accuracy'] # measure accuracy
     )
@@ -35,17 +36,17 @@ def train_classifier(audio_classifier, train_features, train_labels, val_feature
         patience=8, # wait this many epochs without improvement
         min_delta=1e-8, # min gain to achieve w/o stopping
         restore_best_weights=True,  # use best epoch after stopping
-        
         verbose=1 # output logs
     )
 
     reduce_lr = ReduceLROnPlateau(
         monitor='val_loss', # what metric to monitor
-        factor=0.6, # reduce LR by this factor
+        factor=0.5, # reduce LR by this factor
         patience=3, # wait this many epochs 
         min_lr=1e-6, # stop reducing at this LR
         mode='min', # try to achieve lower loss
-        verbose=1 # turn on logs
+        verbose=1, # turn on logs
+        lower_is_better=True # try to achieve lowest val_loss
     )
     # add custom callbacks
     epoch_cleanup = MemoryCleanupCallback()
