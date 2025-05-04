@@ -5,7 +5,7 @@ from numba import cuda
 
 # cleanup to run at the end of model use
 def final_cleanup():
-    print("Cleaning up...\n")
+    print("\n\nCleaning up...\n")
 
     # clear tf session 
     tf.keras.backend.clear_session()

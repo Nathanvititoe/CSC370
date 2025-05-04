@@ -1,7 +1,8 @@
 
 # %% [markdown]
-# Install all dependencies (dont log output)
+# Install all dependencies
 # %%
+# don't log install output
 import subprocess
 from pathlib import Path
 try:
@@ -26,7 +27,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from termcolor import colored
 import pandas as pd
-from src.ui.introduction import introduction, get_acc_color
+from src.ui.introduction import introduction, get_acc_color, get_loss_color
 from src.prep_data.evaluate_dataset import plot_dataset
 from src.ui.visualization import visualize_stats, plot_confusion_matrix
 from src.prep_data.preprocess import load_data_from_folds
@@ -38,10 +39,10 @@ from src.ui.user_input import get_prediction
 assert tf.config.list_physical_devices('GPU'), "No GPU available. Exiting."
 
 # TODO: 
-# fix classifier layer
 # cleanup requirements.txt
-# color prediction label and actual label
+# test optimizers? (time permitting)
 
+# FINAL CLEANUP
 
 # directory paths
 AUDIO_ROOT_PATH = './dataset/dataset_folds'
@@ -77,15 +78,12 @@ check_gpu() # check if gpu is being used
 introduction() # output description to user
 
 # %% [markdown]
-# Prepare and Plot Data
-
-# plot dataset
-plot_dataset(CSV_PATH) # visualize file and class distribution
-
-# %% [markdown]
 # Prepare and Visualize Data
 
 # %%
+# prepare and visualize data
+plot_dataset(CSV_PATH) # visualize file and class distribution
+
 # load, split Dataset and plot audio
 df = pd.read_csv(CSV_PATH) # load metadata
 
@@ -115,8 +113,9 @@ classifier_history = train_classifier(audio_classifier, train_features, train_la
 print("Final Evaluation:")
 loss, acc = audio_classifier.evaluate(val_features, val_labels) # evaluate model
 acc_color = get_acc_color(acc)
-print(colored(f"\nValidation Loss:     {loss:.4f}\n", "blue"))
-print(colored(f"Validation Accuracy: {acc:.4f}\n", acc_color))
+loss_color = get_loss_color(loss)
+print(colored(f"\nValidation Loss:     {loss:.4f}\n", loss_color))
+print(colored(f"Validation Accuracy: {acc:.4f} ({round((acc*100),1)}%)\n ", acc_color))
 
 # plot training results
 plot_confusion_matrix(audio_classifier, val_features, val_labels, label_names) # create confusion matrix

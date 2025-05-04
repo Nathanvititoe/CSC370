@@ -6,17 +6,24 @@ from termcolor import colored
 from src.prep_data.preprocess import load_file, get_yamnet_embedding
 from src.ui.visualization import audio_sampler
 
+# tested custom files pulled from internet (not included in dataset)
+#   gun shots                      ✔
+#   car-horn                       ✔
+#   engine idle                    ✔
+#   old-car horn                   ✔
+#   fire-siren                     ✔
+#   police-sirens                  ✔
+#   untrained_sound (baby coo)     ✔
+#   untrained_sound2 (wind chimes) ✔
+
+
 # function to take input from user and display model prediction functionality
 def get_prediction(classifier, sample_rate, duration, class_names, user_predict_df, audio_root_path):
-    print("\n User Interaction")
-    print("---------------------------")
-
         # prompt user
-    print("Choose one of the following options:")
+    print("\nChoose one of the following options:")
     print("1: Get a prediction on your own audio file")
     print("2: Randomly select an unseen audio sample from the test dataset")
-    print("3: Exit")
-    print("---------------------------")
+    print("3: Exit (not esc)\n")
 
     # loop to prevent exiting without user command
     while True:
@@ -33,7 +40,7 @@ def get_prediction(classifier, sample_rate, duration, class_names, user_predict_
             # loop to get file path / prevent exiting
             while True:
                 # get user filepath as input
-                filepath = input("Please enter the full path to your .wav file (or 'exit' to cancel): ").strip()
+                filepath = input("Please enter the file path for your .wav file, relative to the CSC370 directory (or 'exit' to cancel): ").strip()
                 
                 # check if user wants to exit
                 if filepath.lower() == "exit":
@@ -88,15 +95,19 @@ def get_prediction(classifier, sample_rate, duration, class_names, user_predict_
         pred_label = class_names[pred_class] # get class name
         if is_custom_file == False:
             pred_color = "green" if pred_label == actual_label else "red"
+            print(colored(f"\nPrediction : {pred_label}", pred_color)) # output prediction w/ color
         else:
-            pred_color = "blue"
-        print(colored(f"\nPrediction : {pred_label}", pred_color)) # output prediction
+            print(f"\nPrediction : {pred_label}") # output prediction w/o color
+
         
         # if low confidence, tell user (to handle user files that arent one of the 10 trained classes)
-        if confidence < 0.5:
-            print(colored(f"Warning: Low confidence prediction: {confidence*100} — this audio may not match any known class.", "light_red"))
+        output_confidence = round((confidence * 100), 1)
+        if confidence < 0.8:
+            print(colored(f"Warning: Low confidence prediction: {output_confidence} — this audio may not match any known class.", "light_red"))
+        elif confidence < 0.9:
+            print(colored(f"Confidence : {output_confidence}%", "yellow")) 
         else:
-            print(colored(f"Confidence : {(confidence * 100):.2f}%", "green")) 
+            print(colored(f"Confidence : {output_confidence}%", "green")) 
     except Exception as e:
         print(colored(f"Prediction failed: {e}", "red"))
 
@@ -120,7 +131,13 @@ def get_user_audio_file(user_input_path):
         print(f"Error: Invalid or missing file at: {user_input_path}")
         return None
     else:
-        print(f"\nLoaded Custom file: {os.path.basename(user_input_path)}")
+        # output to user that load was successful
+        user_file_name = os.path.basename(user_input_path)
+        path_length = len(user_file_name)
+        print("-" * (path_length + 24))
+        print(f"  Loaded Custom file: {colored(user_file_name, 'green')}")
+        print("-" * (path_length + 24))
+
     ext = os.path.splitext(user_input_path)[-1].lower() # verify the file extension
     
     # if its a wav file, return the file

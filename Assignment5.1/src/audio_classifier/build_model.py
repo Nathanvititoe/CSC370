@@ -5,28 +5,22 @@ from src.ui.cleanup import MemoryCleanupCallback
 
 # create the simple CNN to classify yamnet embeddings
 def create_classifier(num_classes):
-    # GOOD CLASSIFIER
     # build classifier w/ input shape same as yamnet output shape
-    # audio_classifier = models.Sequential([
-    #     layers.Input(shape=(1024,)),  # input yamnet 1024-embedding (feature vector)
-
-    #     # custom classifier head
-    #     layers.Dense(256, activation='relu'), # dense layer, 256 neurons 
-    #     layers.Dropout(0.3), # randomly drop 30% of neurons (prevnts overfitting)
-    #     layers.Dense(num_classes, activation='softmax')  # dense output layer, output num_classes
-    # ])
-
-    # TODO: TEST CLASSIFIER 
     audio_classifier = models.Sequential([
-        layers.Input(shape=(1024,)),
-        layers.Dense(512, activation='relu'),
-        layers.Dropout(0.2),
-        layers.Dense(num_classes, activation='softmax')
+        # custom classifier head
+        layers.Input(shape=(1024,)),  # input yamnet 1024-embedding (feature vector)
+
+        # conv layer
+        layers.Dense(256, activation='relu'), # dense layer, 256 neurons/nodes
+        layers.Dropout(0.4), # randomly drop 40% of neurons (prevents overfitting)
+        
+        # output layer
+        layers.Dense(num_classes, activation='softmax')  # dense output layer, output num_classes
     ])
     
     # compile the model
     audio_classifier.compile(
-        optimizer=Adam(learning_rate=0.005), # use adam for optimization
+        optimizer=AdamW(learning_rate=5e-3, weight_decay=1e-2), # use adam for optimization, starting learning rate (def- Adam(lr=0.005))
         loss='sparse_categorical_crossentropy', # categorical crossentropy for multi-classification
         metrics=['accuracy'] # measure accuracy
     )
