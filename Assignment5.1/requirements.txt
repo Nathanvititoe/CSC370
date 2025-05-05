@@ -117,6 +117,7 @@ ptyprocess==0.7.0
 pure_eval==0.2.3
 pyasn1==0.4.8
 pyasn1-modules==0.2.1
+pycairo==1.28.0
 pycparser==2.22
 pydub==0.25.1
 Pygments==2.19.1
