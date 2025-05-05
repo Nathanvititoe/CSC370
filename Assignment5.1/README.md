@@ -1,3 +1,6 @@
+# Video Link: 
+https://youtu.be/icp3g757wzU
+
 # Instructions: 
     This project must be run via Jupyter notebook or another GUI due to the extensive plotting and visualization
 
