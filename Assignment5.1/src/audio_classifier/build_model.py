@@ -1,5 +1,5 @@
 from tensorflow.keras import layers, models, regularizers # type: ignore
-from tensorflow.keras.optimizers import AdamW # type: ignore
+from tensorflow.keras.optimizers import AdamW, Adam # type: ignore
 from tensorflow.keras.callbacks import EarlyStopping,ReduceLROnPlateau # type: ignore
 from src.ui.cleanup import MemoryCleanupCallback
 
@@ -21,7 +21,7 @@ def create_classifier(num_classes):
     
     # compile the model
     audio_classifier.compile(
-        optimizer=AdamW(learning_rate=9e-4, weight_decay=4e-2), # use adam for optimization
+        optimizer=AdamW(learning_rate=9e-4, weight_decay=7e-2), # use adam for optimization
         loss='sparse_categorical_crossentropy', # categorical crossentropy for multi-classification
         metrics=['accuracy'] # measure accuracy
     )
@@ -33,7 +33,7 @@ def train_classifier(audio_classifier, train_features, train_labels, val_feature
     # define callbacks to refine training
     early_stopping = EarlyStopping(
         monitor='val_loss', # what to monitor
-        patience=8, # wait this many epochs without improvement
+        patience=10, # wait this many epochs without improvement
         min_delta=1e-8, # min gain to achieve w/o stopping
         restore_best_weights=True,  # use best epoch after stopping
         verbose=1 # output logs

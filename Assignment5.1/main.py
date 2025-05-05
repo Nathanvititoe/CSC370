@@ -43,12 +43,12 @@ AUDIO_ROOT_PATH = './dataset/dataset_folds'
 CSV_PATH = './dataset/UrbanSound8K.csv'
 
 # config variables
-valid_split = 0.2 # % of dataset to use for validation
-BATCH_SIZE = 128 # num of files per sample(32 default--good result) 
+valid_split = 0.1 # % of dataset to use for validation 
+BATCH_SIZE = 128 # num of files per sample 
 SAMPLE_RATE = 16000 # sample rate to downsample to
 DURATION_SEC = 4 # time length of audio file (seconds)
 
-NUM_EPOCHS = 200
+NUM_EPOCHS = 100
 label_names = [
     "air_conditioner", "car_horn", "children_playing", "dog_bark", "drilling",
     "engine_idling", "gun_shot", "jackhammer", "siren", "street_music"
@@ -82,8 +82,8 @@ plot_dataset(CSV_PATH) # visualize file and class distribution
 df = pd.read_csv(CSV_PATH) # load metadata
 
 # save 5% of the dataset as unseen files for user predictions, split remainder 80/20 for train/val
-trainval_df, user_predict_df = train_test_split(df, test_size=0.05, stratify=df["classID"], random_state=42)
-train_df, val_df = train_test_split(trainval_df, test_size=0.2, stratify=trainval_df["classID"], random_state=42)
+trainval_df, user_predict_df = train_test_split(df, test_size=0.01, stratify=df["classID"], random_state=42)
+train_df, val_df = train_test_split(trainval_df, test_size=valid_split, stratify=trainval_df["classID"], random_state=42)
 
 # load data for each split
 train_features, train_labels = load_data_from_folds(AUDIO_ROOT_PATH, train_df, SAMPLE_RATE, DURATION_SEC, "Training") # training features/labels

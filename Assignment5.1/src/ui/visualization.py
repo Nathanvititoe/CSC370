@@ -64,7 +64,7 @@ def plot_waveform_comparison(class_waveforms_raw, class_waveforms_proc):
             axes[i, 0].plot(raw_time, raw_waveform[:, 1], label='Right Channel', color='red', alpha=0.5) # plot right channel
             axes[i, 0].set_xlim(raw_time[0], raw_time[-1]) # trim stereo whitespace
         else:  # if mono audio
-            axes[i, 0].plot(raw_time, raw_waveform, label='Mono', color='white') # plot single channel
+            axes[i, 0].plot(raw_time, raw_waveform, label='Mono', color='orange') # plot single channel
             axes[i, 0].set_xlim(raw_time[0], raw_time[-1]) # trim mono whitespace
         
         # Raw Audio Titles
